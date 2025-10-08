@@ -1,0 +1,25 @@
+.slideViewContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.index {
+  font: var(--filmstrip-index-span-font);
+  color: var(--default-font-color);
+
+  margin-right: 10px;
+}
+
+.slideView {
+  width: 162px;
+  height: 92px;
+
+  border: 2px solid var(--filmstrip-slide-border-color);
+  border-radius: 15px;
+  margin-bottom: 10px;
+}
+
+.slideView:hover {
+  border: 2px solid var(--filmstrip-slide-border-hover-color);
+  transition-duration: var(--default-transition-time);
+}

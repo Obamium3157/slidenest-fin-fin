@@ -1,0 +1,32 @@
+.menuBarItem {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  font: var(--default-font);
+  color: var(--default-font-color);
+
+  width: fit-content;
+  height: 24px;
+
+  padding: 2px 7px;
+  margin-right: 5px;
+  border-radius: 5px;
+
+  background-color: white;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.menuBarItem:hover {
+  transition-duration: var(--default-transition-time);
+  background-color: lightgrey;
+}
+
+.menuBarItemOption {
+  font: var(--default-font);
+  color: var(--default-font-color);
+}
