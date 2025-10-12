@@ -30,4 +30,6 @@
   --filmstrip-slide-border-color: #423e3e4c;
   --filmstrip-slide-border-hover-color: #423e3eff;
   --default-transition-time: 0.2s;
+  --slide-width: 1250px;
+  --slide-height: 700px;
 }

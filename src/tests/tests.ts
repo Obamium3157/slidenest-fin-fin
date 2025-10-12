@@ -283,25 +283,6 @@ function testAddTextAndImage() {
   );
 }
 
-// function testAddJunkToSlideObject() {
-//   const { presentation: maxP } = maxPresentation();
-//   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
-//   const maxSlide = getOrderedMapElementById(maxP.slides, maxSlideId);
-//   if (!maxSlide) {
-//     console.log("hmmm");
-//     return;
-//   }
-//   const slideObj = getOrderedMapElementById(
-//     maxSlide.slideObjects,
-//     getOrderedMapOrder(maxSlide.slideObjects)[0],
-//   );
-//
-//   if (slideObj) {
-//     if (slideObj.type == "text") {
-//     }
-//   }
-// }
-
 function testChangeSlideObjectPositionAndSize() {
   const { presentation: minP } = minPresentation();
   const minOrder = getOrderedMapOrder(minP.slides);

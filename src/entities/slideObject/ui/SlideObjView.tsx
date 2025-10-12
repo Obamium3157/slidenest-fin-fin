@@ -1,4 +1,4 @@
-import type { SlideObj } from "../model/types.ts";
+import type { SlideObj } from "../../slide/model/types.ts";
 
 import styles from "./slideObjView.module.css";
 import * as React from "react";
@@ -38,9 +38,13 @@ export function SlideObjView(props: SlideObjViewProps) {
         fontStyleValue = fontStyle.includes("italic") ? "italic" : "normal";
       }
 
+      const fontSizeStr = font.fontSize.split("px");
+      console.log(fontSizeStr[0]);
+
       const style: React.CSSProperties = {
         fontFamily: font?.fontFamily ?? "SST",
-        fontSize: font?.fontSize ? font.fontSize : "30px",
+        // fontSize: font.fontSize,
+        fontSize: `${parseInt(fontSizeStr[0])}px`,
         fontWeight: font?.fontWeight,
         fontStyle: fontStyleValue,
         letterSpacing: font?.letterSpacing,

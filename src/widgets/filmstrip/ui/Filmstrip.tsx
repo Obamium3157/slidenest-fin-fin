@@ -21,7 +21,7 @@ export function FilmStrip(props: FilmstripProps) {
       {order.map((id, idx) => {
         const s = getOrderedMapElementById(slides, id);
         if (s) {
-          return <SlideView key={idx} slide={s} idx={idx} />;
+          return <SlideView key={idx} slide={s} scaleFactor={7} idx={idx} />;
         }
       })}
     </div>

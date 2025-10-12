@@ -1,0 +1,20 @@
+.slideShowButton {
+    width: fit-content;
+    height: 40px;
+    padding: 10px 16px;
+    border: 2px solid var(--filmstrip-slide-border-color);
+    border-radius: 100px;
+    background: white;
+    font: var(--default-font);
+
+    /* text-align: center; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toolbarInterfaceButton {
+    width: 28px;
+    height: 28px;
+    margin-right: 15px;
+}

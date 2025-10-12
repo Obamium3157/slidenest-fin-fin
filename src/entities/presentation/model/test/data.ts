@@ -10,6 +10,7 @@ import type { Slide, SlideObj } from "../../../slide/model/types.ts";
 import type { Rect } from "../../../../shared/types/rect/Rect.ts";
 import { makeColor } from "../../../../shared/types/color/test/data.ts";
 import { makeFont } from "../../../../shared/types/font/test/data.ts";
+import { newTextObj } from "../../../slideText/model/test/data.ts";
 
 export function minPresentation(): {
   presentation: Presentation;
@@ -33,20 +34,80 @@ export function maxPresentation(): {
   const s2Id = generateId();
 
   const rect1: Rect = {
-    x: 15,
-    y: 9,
-    w: 150,
-    h: 30,
+    x: 615,
+    y: 80,
+    w: 350,
+    h: 500,
   };
   const rect2: Rect = {
     x: 100,
-    y: 200,
-    w: 123,
-    h: 322,
+    y: 100,
+    w: 500,
+    h: 600,
   };
 
   const textId1 = generateId();
   const imageId1 = generateId();
+
+  const arabicText = newTextObj(
+    {
+      x: 615,
+      y: 230,
+      w: 300,
+      h: 100,
+    },
+    "!مرحبًا",
+  );
+
+  const hebrewText = newTextObj(
+    {
+      x: 615,
+      y: 330,
+      w: 300,
+      h: 100,
+    },
+    "!שלום",
+  );
+
+  const chineseText = newTextObj(
+    {
+      x: 615,
+      y: 430,
+      w: 300,
+      h: 100,
+    },
+    "你好！",
+  );
+
+  const koreanText = newTextObj(
+    {
+      x: 615,
+      y: 530,
+      w: 300,
+      h: 100,
+    },
+    "안녕하세요!",
+  );
+
+  const hindiText = newTextObj(
+    {
+      x: 800,
+      y: 430,
+      w: 300,
+      h: 100,
+    },
+    "नमस्ते!",
+  );
+
+  const farsiText = newTextObj(
+    {
+      x: 800,
+      y: 330,
+      w: 300,
+      h: 100,
+    },
+    "!سلام",
+  );
 
   let slideObjectsSlide1: OrderedMap<SlideObj> = newOrderedMap<SlideObj>();
   slideObjectsSlide1 = getNewOrderedMapWithPushed(slideObjectsSlide1, textId1, {
@@ -62,14 +123,44 @@ export function maxPresentation(): {
     {
       id: imageId1,
       type: "image",
-      src: "https://www.w3schools.com/images/w3schools_green.jpg",
+      src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJoFQYlPTIN4DVEc0gByg8GHfwEVv1eiJcjA&s",
       rect: rect2,
     },
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    arabicText.id,
+    arabicText,
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    hebrewText.id,
+    hebrewText,
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    chineseText.id,
+    chineseText,
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    koreanText.id,
+    koreanText,
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    hindiText.id,
+    hindiText,
+  );
+  slideObjectsSlide1 = getNewOrderedMapWithPushed(
+    slideObjectsSlide1,
+    farsiText.id,
+    farsiText,
   );
 
   const slide1: Slide = {
     id: s1Id,
-    backgroundColor: makeColor("#FFF012"),
+    backgroundColor: makeColor("#0FFFFF"),
     slideObjects: slideObjectsSlide1,
   };
 
@@ -83,7 +174,7 @@ export function maxPresentation(): {
     {
       id: textId20,
       type: "text",
-      text: "Hello from textbox1!!!",
+      text: "Wenamecha in sama!!!",
       font: makeFont("SST"),
       rect: rect1,
     },
@@ -102,7 +193,7 @@ export function maxPresentation(): {
 
   const slide2 = {
     id: s2Id,
-    backgroundColor: makeColor("#123514"),
+    backgroundColor: makeColor("#FFFFFF"),
     slideObjects: slideObjectsSlide2,
   };
 
@@ -110,7 +201,7 @@ export function maxPresentation(): {
     id: generateId(),
     // title: "maxPresentation title",
     // title: "الحد الأقصى للعرض",
-    title: "テキスト",
+    title: "かっこいいタイトル(数日かかった)",
     slides: newOrderedMap<Slide>(),
   };
   presentation.slides = getNewOrderedMapWithPushed(
@@ -128,5 +219,9 @@ export function maxPresentation(): {
     selectedSlideId: [s1Id],
     selectedSlideObjId: [textId1],
   };
+  // const select: Select = {
+  //   selectedSlideId: [s2Id],
+  //   selectedSlideObjId: [],
+  // };
   return { presentation, select };
 }

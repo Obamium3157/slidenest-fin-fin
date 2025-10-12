@@ -256,7 +256,9 @@ export function changeSlideObjectPosition(
     return p;
   }
 
-  return updateSlideObj(p, slideId, objId, () => ({ rect: newRect }));
+  return updateSlideObj<typeof obj>(p, slideId, objId, () => ({
+    rect: newRect,
+  }));
 }
 
 export function changeSlideObjSize(

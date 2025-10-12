@@ -6,7 +6,7 @@ export function makeFont(text = "s"): Font {
     type: "font",
     fontString: text,
     fontFamily: "SST",
-    fontSize: "15px",
+    fontSize: "60px",
     fontWeight: "normal",
     fontStyle: new Set(["bold", "italic"]),
     letterSpacing: "0px",

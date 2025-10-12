@@ -1,12 +1,9 @@
 import type { Select } from "../../../entities/select/model/types.ts";
 import type { Presentation } from "../../../entities/presentation/model/types.ts";
-import {
-  getOrderedMapElementById,
-  getOrderedMapOrder,
-} from "../../../shared/types/orderedMap/OrderedMap.ts";
-import { SlideObjView } from "../../../entities/slide/ui/SlideObjView.tsx";
+import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
 
 import styles from "./workspace.module.css";
+import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 
 export type WorkspaceProps = {
   presentation: Presentation;
@@ -24,11 +21,6 @@ export function Workspace(props: WorkspaceProps) {
     return null;
   }
 
-  const currentSlideObjects = currentSlide.slideObjects;
-  const currentSlideObjectsOrder = getOrderedMapOrder(
-    currentSlide.slideObjects,
-  );
-
   return (
     <div className={styles.workspace}>
       <div
@@ -37,15 +29,7 @@ export function Workspace(props: WorkspaceProps) {
           background: currentSlide.backgroundColor.color,
         }}
       >
-        {/*<p>Picked slide id: {currentSlide.id}</p>*/}
-
-        {currentSlideObjectsOrder.map((id, idx) => {
-          const obj = getOrderedMapElementById(currentSlideObjects, id);
-          if (!obj) {
-            return null;
-          }
-          return <SlideObjView key={idx} slideObj={obj} />;
-        })}
+        <AllSlideObjects slide={currentSlide} />
       </div>
     </div>
   );
