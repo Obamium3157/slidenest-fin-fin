@@ -7,10 +7,18 @@ import type { Slide } from "../../../entities/slide/model/types.ts";
 
 type SlideObjArrayProps = {
   slide: Slide;
+  selectedObjectId?: string | null;
+  onSelectObject?: (id: string | null) => void;
+  stopPropagation: boolean;
 };
 
 export function AllSlideObjects(props: SlideObjArrayProps) {
-  const { slide } = props;
+  const {
+    slide,
+    selectedObjectId = null,
+    onSelectObject,
+    stopPropagation,
+  } = props;
 
   const currentSlideObjects = slide.slideObjects;
   const currentSlideObjectsOrder = getOrderedMapOrder(slide.slideObjects);
@@ -22,7 +30,15 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
         if (!obj) {
           return null;
         }
-        return <SlideObjView key={idx} slideObj={obj} />;
+        return (
+          <SlideObjView
+            key={idx}
+            slideObj={obj}
+            isSelected={selectedObjectId === obj.id}
+            onSelect={() => onSelectObject?.(obj.id)}
+            stopPropagation={stopPropagation}
+          />
+        );
       })}
     </>
   );

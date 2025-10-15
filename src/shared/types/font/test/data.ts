@@ -1,17 +1,16 @@
 import { makeColor } from "../../color/test/data.ts";
 import type { Font } from "../Font.ts";
 
-export function makeFont(text = "s"): Font {
+export function defaultFont(): Font {
   return {
     type: "font",
-    fontString: text,
     fontFamily: "SST",
-    fontSize: "60px",
+    fontSize: "30px",
     fontWeight: "normal",
-    fontStyle: new Set(["bold", "italic"]),
+    fontStyle: new Set([]),
     letterSpacing: "0px",
-    wordSpacing: "0px",
-    color: makeColor("#000000"),
+    wordSpacing: "5px",
+    color: makeColor("#222222"),
     textDecoration: new Set(),
     textTransform: "none",
   };

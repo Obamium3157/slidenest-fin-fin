@@ -4,7 +4,7 @@ import {
   type OrderedMap,
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import type { Slide } from "../../../entities/slide/model/types.ts";
-import { SlideView } from "../../../entities/slide/ui/SlideView.tsx";
+import { SlideViewFilmstrip } from "../../slideViewFilmstrip/ui/SlideViewFilmstrip.tsx";
 
 import styles from "./filmstrip.module.css";
 
@@ -21,7 +21,9 @@ export function FilmStrip(props: FilmstripProps) {
       {order.map((id, idx) => {
         const s = getOrderedMapElementById(slides, id);
         if (s) {
-          return <SlideView key={idx} slide={s} scaleFactor={7} idx={idx} />;
+          return (
+            <SlideViewFilmstrip key={idx} slide={s} scaleFactor={7} idx={idx} />
+          );
         }
       })}
     </div>

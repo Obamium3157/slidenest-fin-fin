@@ -5,10 +5,15 @@ import * as React from "react";
 
 export type SlideObjViewProps = {
   slideObj: SlideObj;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  stopPropagation: boolean;
 };
 
 export function SlideObjView(props: SlideObjViewProps) {
-  const { slideObj } = props;
+  const { slideObj, isSelected = false, onSelect, stopPropagation } = props;
+
+  const [isHovered, setHovered] = React.useState(false);
 
   const rect = slideObj.rect ?? { x: 0, y: 0, w: 100, h: 100 };
 
@@ -19,6 +24,20 @@ export function SlideObjView(props: SlideObjViewProps) {
     height: `${rect.h}px`,
     position: "absolute",
     transformOrigin: "top left",
+  };
+
+  const borderClass = isSelected
+    ? styles.slideObj__selected
+    : isHovered
+      ? styles.slideObj__hovered
+      : "";
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (stopPropagation) {
+      e.stopPropagation();
+    }
+
+    onSelect?.();
   };
 
   switch (slideObj.type) {
@@ -38,13 +57,9 @@ export function SlideObjView(props: SlideObjViewProps) {
         fontStyleValue = fontStyle.includes("italic") ? "italic" : "normal";
       }
 
-      const fontSizeStr = font.fontSize.split("px");
-      console.log(fontSizeStr[0]);
-
       const style: React.CSSProperties = {
         fontFamily: font?.fontFamily ?? "SST",
-        // fontSize: font.fontSize,
-        fontSize: `${parseInt(fontSizeStr[0])}px`,
+        fontSize: font.fontSize,
         fontWeight: font?.fontWeight,
         fontStyle: fontStyleValue,
         letterSpacing: font?.letterSpacing,
@@ -57,7 +72,13 @@ export function SlideObjView(props: SlideObjViewProps) {
       };
 
       return (
-        <div className={styles.slideObj} style={baseStyle}>
+        <div
+          className={`${styles.slideObj} ${borderClass}`}
+          style={baseStyle}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onClick={handleClick}
+        >
           <div className={styles.slideObj__text} style={style}>
             {slideObj.text}
           </div>
@@ -66,7 +87,13 @@ export function SlideObjView(props: SlideObjViewProps) {
     }
     case "image": {
       return (
-        <div className={styles.slideObj} style={baseStyle}>
+        <div
+          className={`${styles.slideObj} ${borderClass}`}
+          style={baseStyle}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onClick={handleClick}
+        >
           <img
             src={slideObj.src}
             alt="aadsad"

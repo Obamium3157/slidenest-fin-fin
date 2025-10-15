@@ -1,17 +1,15 @@
-import type { Select } from "../../../entities/select/model/types.ts";
-import type { Presentation } from "../../../entities/presentation/model/types.ts";
 import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
 
 import styles from "./workspace.module.css";
-import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
+import { SlideView } from "../../slideView/ui/SlideView.tsx";
+import type { Editor } from "../../../entities/editor/model/types.ts";
 
 export type WorkspaceProps = {
-  presentation: Presentation;
-  select: Select;
+  editor: Editor;
 };
 
 export function Workspace(props: WorkspaceProps) {
-  const { presentation, select } = props;
+  const { presentation, select } = props.editor;
   const currentSlide = getOrderedMapElementById(
     presentation.slides,
     select.selectedSlideId[0],
@@ -23,14 +21,7 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className={styles.workspace}>
-      <div
-        className={styles.slide}
-        style={{
-          background: currentSlide.backgroundColor.color,
-        }}
-      >
-        <AllSlideObjects slide={currentSlide} />
-      </div>
+      <SlideView slide={currentSlide} />
     </div>
   );
 }

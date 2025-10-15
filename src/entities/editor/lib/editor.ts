@@ -1,4 +1,3 @@
-import type { Presentation } from "../model/types.ts";
 import {
   getNewOrderedMapWithMoved,
   getNewOrderedMapWithPushed,
@@ -15,6 +14,8 @@ import type { Font } from "../../../shared/types/font/Font.ts";
 import type { Select } from "../../select/model/types.ts";
 import { generateId } from "../../../shared/lib/generateId.ts";
 import type { SlideImage } from "../../slideImage/model/types.ts";
+import type { Presentation } from "../../presentation/model/types.ts";
+import type { Editor } from "../model/types.ts";
 
 const MAX_PRESENTATION_TITLE_SIZE: number = 70;
 const SLIDE_SIZE = {
@@ -23,38 +24,42 @@ const SLIDE_SIZE = {
 };
 
 export function changePresentationTitle(
-  p: Presentation,
+  editor: Editor,
   newTitle: string,
-): Presentation {
+): Editor {
+  const { presentation, select } = editor;
+
   if (
-    newTitle !== p.title &&
+    newTitle !== presentation.title &&
     0 < newTitle.length &&
     newTitle.length <= MAX_PRESENTATION_TITLE_SIZE
   ) {
     return {
-      ...p,
-      title: newTitle,
+      presentation: { ...presentation, title: newTitle },
+      select,
     };
   }
 
-  return p;
+  return editor;
 }
 
-export function addSlide(
-  p: Presentation,
-  backgroundColor: Color,
-  select: Select,
-): { presentation: Presentation; select: Select } {
+export function addSlide(editor: Editor, backgroundColor: string): Editor {
+  const { presentation, select } = editor;
+  const col: Color = { type: "color", color: backgroundColor };
   const newId: string = generateId();
   const newSlide: Slide = {
     id: newId,
-    backgroundColor: backgroundColor,
+    backgroundColor: col,
     slideObjects: newOrderedMap<SlideObj>(),
   };
 
-  const newSlides = getNewOrderedMapWithPushed(p.slides, newId, newSlide);
+  const newSlides = getNewOrderedMapWithPushed(
+    presentation.slides,
+    newId,
+    newSlide,
+  );
   const newPresentation = {
-    ...p,
+    ...presentation,
     slides: newSlides,
   };
 
@@ -63,18 +68,15 @@ export function addSlide(
   return { presentation: newPresentation, select: newSelect };
 }
 
-export function removeSlide(
-  p: Presentation,
-  targetSlideId: string,
-  select: Select,
-): { presentation: Presentation; select: Select } {
+export function removeSlide(editor: Editor, targetSlideId: string): Editor {
+  const { presentation, select } = editor;
   const newSlides: OrderedMap<Slide> = getNewOrderedMapWithRemoved(
-    p.slides,
+    presentation.slides,
     targetSlideId,
   );
 
   const newPresentation = {
-    ...p,
+    ...presentation,
     slides: newSlides,
   };
 
@@ -87,30 +89,32 @@ export function removeSlide(
 }
 
 export function moveSlide(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   toIdx: number,
-  select: Select,
-): { presentation: Presentation; select: Select } {
+): Editor {
+  const { presentation, select } = editor;
+
   return {
     presentation: {
-      ...p,
-      slides: getNewOrderedMapWithMoved(p.slides, slideId, toIdx),
+      ...presentation,
+      slides: getNewOrderedMapWithMoved(presentation.slides, slideId, toIdx),
     },
     select,
   };
 }
 
 export function removeSlideObj(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   objId: string,
-  select: Select,
-): { presentation: Presentation; select: Select } {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation, select } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
     return {
-      presentation: p,
+      presentation: presentation,
       select,
     };
   }
@@ -121,8 +125,8 @@ export function removeSlideObj(
   };
 
   const newPresentation: Presentation = {
-    ...p,
-    slides: getNewOrderedMapWithPushed(p.slides, slideId, newSlide),
+    ...presentation,
+    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
   };
 
   const newSelect: Select = {
@@ -137,15 +141,16 @@ export function removeSlideObj(
 }
 
 export function addText(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textProps: { text: string; font: Font; rect: Rect },
-  select: Select,
-): { presentation: Presentation; select: Select } {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation, select } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
     return {
-      presentation: p,
+      presentation: presentation,
       select,
     };
   }
@@ -159,26 +164,28 @@ export function addText(
   };
 
   const newPresentation: Presentation = {
-    ...p,
-    slides: getNewOrderedMapWithPushed(p.slides, slideId, newSlide),
+    ...presentation,
+    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
   };
 
-  const newSelect: Select = { selectedSlideId: [], selectedSlideObjId: [id] };
+  const newSelect: Select = { ...select, selectedSlideObjId: [id] };
 
   return { presentation: newPresentation, select: newSelect };
 }
 
 export function addImage(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
-  src: string,
-  rect: Rect,
-  select: Select,
-): { presentation: Presentation; select: Select } {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+  imageProps: { src: string; rect: Rect },
+): Editor {
+  const { presentation, select } = editor;
+  const { src, rect } = imageProps;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
+
   if (!slide) {
     return {
-      presentation: p,
+      presentation: presentation,
       select,
     };
   }
@@ -190,59 +197,66 @@ export function addImage(
     slideObjects: getNewOrderedMapWithPushed(slide.slideObjects, id, imageObj),
   };
   const newPresentation = {
-    ...p,
-    slides: getNewOrderedMapWithPushed(p.slides, slideId, newSlide),
+    ...presentation,
+    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
   };
 
-  const newSelect: Select = { selectedSlideId: [], selectedSlideObjId: [id] };
+  const newSelect: Select = { ...select, selectedSlideObjId: [id] };
 
   return { presentation: newPresentation, select: newSelect };
 }
 
 export function updateSlideObj<T extends SlideObj>(
-  presentation: Presentation,
+  editor: Editor,
   slideId: string,
   objId: string,
   updates: (obj: T) => Partial<Omit<T, "id" | "type">>,
-): Presentation {
+): Editor {
+  const { presentation, select } = editor;
+
   const slide = getOrderedMapElementById(presentation.slides, slideId);
-  if (!slide) return presentation;
+  if (!slide) return editor;
 
   const slideObj = getOrderedMapElementById(slide.slideObjects, objId) as
     | T
     | undefined;
-  if (!slideObj) return presentation;
+  if (!slideObj) return editor;
 
   const newObj = { ...slideObj, ...updates(slideObj) } as T;
 
   return {
-    ...presentation,
-    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, {
-      ...slide,
-      slideObjects: getNewOrderedMapWithPushed(
-        slide.slideObjects,
-        objId,
-        newObj,
-      ),
-    }),
+    presentation: {
+      ...presentation,
+      slides: getNewOrderedMapWithPushed(presentation.slides, slideId, {
+        ...slide,
+        slideObjects: getNewOrderedMapWithPushed(
+          slide.slideObjects,
+          objId,
+          newObj,
+        ),
+      }),
+    },
+    select,
   };
 }
 
 export function changeSlideObjectPosition(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   objId: string,
   newX: number,
   newY: number,
-): Presentation {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
-    return p;
+    return editor;
   }
 
   const obj = getOrderedMapElementById(slide.slideObjects, objId);
   if (!obj) {
-    return p;
+    return editor;
   }
 
   const newRect = { ...obj.rect, x: newX, y: newY };
@@ -253,54 +267,60 @@ export function changeSlideObjectPosition(
     newX + newRect.w > SLIDE_SIZE.w ||
     newY + newRect.h > SLIDE_SIZE.h
   ) {
-    return p;
+    return editor;
   }
 
-  return updateSlideObj<typeof obj>(p, slideId, objId, () => ({
+  return updateSlideObj<typeof obj>(editor, slideId, objId, () => ({
     rect: newRect,
   }));
 }
 
 export function changeSlideObjSize(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   objId: string,
   newW: number,
   newH: number,
-): Presentation {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
-    return p;
+    return editor;
   }
 
   const obj = getOrderedMapElementById(slide.slideObjects, objId);
   if (!obj) {
-    return p;
+    return editor;
   }
 
   const newRect = { ...obj.rect, w: newW, h: newH };
 
   if (newW <= 0 || newH <= 0 || newW > SLIDE_SIZE.w || newH > SLIDE_SIZE.h) {
-    return p;
+    return editor;
   }
 
-  return updateSlideObj(p, slideId, objId, () => ({ rect: newRect }));
+  return updateSlideObj(editor, slideId, objId, () => ({
+    rect: newRect,
+  }));
 }
 
 function updateSlideTextFont(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   updater: (oldFont: Font) => Font,
-): Presentation {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
-    return p;
+    return editor;
   }
 
   const obj = getOrderedMapElementById(slide.slideObjects, textObjId);
   if (!obj || obj.type !== "text") {
-    return p;
+    return editor;
   }
 
   const textObj = obj as SlideText;
@@ -309,171 +329,220 @@ function updateSlideTextFont(
     font: updater(textObj.font),
   };
 
-  return updateSlideObj<SlideText>(p, slideId, textObjId, () => ({
+  return updateSlideObj<SlideText>(editor, slideId, textObjId, () => ({
     font: newObj.font,
   }));
 }
 
 export function changeSlideTextString(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newTextString: string,
-): Presentation {
-  return updateSlideObj<SlideText>(p, slideId, textObjId, () => ({
+): Editor {
+  return updateSlideObj<SlideText>(editor, slideId, textObjId, () => ({
     text: newTextString,
   }));
 }
 
 export function changeFontFamily(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newFamily: string,
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     fontFamily: newFamily,
   }));
 }
 
 export function changeFontSize(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newSize: string,
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     fontSize: newSize,
   }));
 }
 
 export function changeFontWeight(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newWeight: Font["fontWeight"],
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     fontWeight: newWeight,
   }));
 }
 
 export function changeFontStyle(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newStyle: Font["fontStyle"],
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     fontStyle: newStyle,
   }));
 }
 
 export function changeFontColor(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   newColor: Color,
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     color: newColor,
   }));
 }
 
 export function changeLetterSpacing(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   spacing: string,
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     letterSpacing: spacing,
   }));
 }
 
 export function changeWordSpacing(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   spacing: string,
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     wordSpacing: spacing,
   }));
 }
 
 export function changeTextDecoration(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   decoration: Font["textDecoration"],
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     textDecoration: decoration,
   }));
 }
 
 export function changeTextTransform(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   textObjId: string,
   transform: Font["textTransform"],
-): Presentation {
-  return updateSlideTextFont(p, slideId, textObjId, (old) => ({
+): Editor {
+  return updateSlideTextFont(editor, slideId, textObjId, (old) => ({
     ...old,
     textTransform: transform,
   }));
 }
 
 export function changeSlideBackgroundColor(
-  p: Presentation,
+  editor: Editor,
   slideId: string,
   newColor: Color,
-): Presentation {
-  const slide = getOrderedMapElementById(p.slides, slideId);
+): Editor {
+  const { presentation, select } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
   if (!slide) {
-    return p;
+    return editor;
   }
   if (slide.backgroundColor.color === newColor.color) {
-    return p;
+    return editor;
   }
 
   const newSlide: Slide = { ...slide, backgroundColor: newColor };
 
   return {
-    ...p,
-    slides: getNewOrderedMapWithPushed(p.slides, slideId, newSlide),
+    presentation: {
+      ...presentation,
+      slides: getNewOrderedMapWithPushed(
+        presentation.slides,
+        slideId,
+        newSlide,
+      ),
+    },
+    select,
   };
 }
 
-export function selectSlide(select: Select, slideId: string): Select {
+export function selectSlide(editor: Editor, slideId: string): Editor {
+  const { presentation, select } = editor;
+
   if (select.selectedSlideId.includes(slideId)) {
-    return select;
+    return editor;
   }
+
   return {
-    selectedSlideId: [...select.selectedSlideId, slideId],
-    selectedSlideObjId: [],
+    presentation,
+    // select: {
+    //   selectedSlideId: [...select.selectedSlideId, slideId],
+    //   selectedSlideObjId: [],
+    // },
+    select: {
+      selectedSlideId: [slideId],
+      selectedSlideObjId: [],
+    },
   };
 }
 
-export function selectSlideObj(select: Select, objId: string): Select {
+export function selectSlideObj(editor: Editor, objId: string): Editor {
+  const { presentation, select } = editor;
+
   const isSelected = select.selectedSlideObjId.includes(objId);
   return {
-    selectedSlideId: [],
-    selectedSlideObjId: isSelected
-      ? select.selectedSlideObjId.filter((id) => id !== objId)
-      : [...select.selectedSlideObjId, objId],
+    presentation,
+    select: {
+      selectedSlideId: [],
+      selectedSlideObjId: isSelected
+        ? select.selectedSlideObjId.filter((id) => id !== objId)
+        : [...select.selectedSlideObjId, objId],
+    },
   };
 }
 
-export function clearSelection(): Select {
-  return { selectedSlideId: [], selectedSlideObjId: [] };
+export function removeLastSelectedObject(editor: Editor): Editor {
+  const { presentation, select } = editor;
+  const selectedSlideObjIds = select.selectedSlideObjId;
+
+  const newSelect: Select = {
+    ...select,
+    selectedSlideObjId: selectedSlideObjIds.splice(
+      selectedSlideObjIds.length - 1,
+      1,
+    ),
+  };
+
+  return {
+    presentation,
+    select: newSelect,
+  };
+}
+
+export function clearSelection(editor: Editor): Editor {
+  const { presentation } = editor;
+  return {
+    presentation,
+    select: {
+      selectedSlideId: [],
+      selectedSlideObjId: [],
+    },
+  };
 }

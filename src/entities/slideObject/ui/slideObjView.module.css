@@ -1,6 +1,16 @@
 .slideObj {
     position: absolute;
+    border: 2px solid #22222230;
 }
+
+.slideObj__hovered {
+    border: 2px solid #22222280;
+}
+
+.slideObj__selected {
+    border: 2px solid #007bff;
+}
+
 
 .slideObj__text {
     width: 100%;

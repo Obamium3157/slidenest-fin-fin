@@ -9,13 +9,11 @@ import {
 import type { Slide, SlideObj } from "../../../slide/model/types.ts";
 import type { Rect } from "../../../../shared/types/rect/Rect.ts";
 import { makeColor } from "../../../../shared/types/color/test/data.ts";
-import { makeFont } from "../../../../shared/types/font/test/data.ts";
+import { defaultFont } from "../../../../shared/types/font/test/data.ts";
 import { newTextObj } from "../../../slideText/model/test/data.ts";
+import type { Editor } from "../../../editor/model/types.ts";
 
-export function minPresentation(): {
-  presentation: Presentation;
-  select: Select;
-} {
+export function minPresentation(): Editor {
   const presentation = {
     id: generateId(),
     title: "minPresentation title",
@@ -26,10 +24,7 @@ export function minPresentation(): {
   return { presentation, select };
 }
 
-export function maxPresentation(): {
-  presentation: Presentation;
-  select: Select;
-} {
+export function maxPresentation(): Editor {
   const s1Id = generateId();
   const s2Id = generateId();
 
@@ -37,7 +32,7 @@ export function maxPresentation(): {
     x: 615,
     y: 80,
     w: 350,
-    h: 500,
+    h: 60,
   };
   const rect2: Rect = {
     x: 100,
@@ -53,8 +48,8 @@ export function maxPresentation(): {
     {
       x: 615,
       y: 230,
-      w: 300,
-      h: 100,
+      w: 80,
+      h: 40,
     },
     "!مرحبًا",
   );
@@ -63,8 +58,8 @@ export function maxPresentation(): {
     {
       x: 615,
       y: 330,
-      w: 300,
-      h: 100,
+      w: 80,
+      h: 40,
     },
     "!שלום",
   );
@@ -73,8 +68,8 @@ export function maxPresentation(): {
     {
       x: 615,
       y: 430,
-      w: 300,
-      h: 100,
+      w: 100,
+      h: 50,
     },
     "你好！",
   );
@@ -83,8 +78,8 @@ export function maxPresentation(): {
     {
       x: 615,
       y: 530,
-      w: 300,
-      h: 100,
+      w: 160,
+      h: 50,
     },
     "안녕하세요!",
   );
@@ -93,8 +88,8 @@ export function maxPresentation(): {
     {
       x: 800,
       y: 430,
-      w: 300,
-      h: 100,
+      w: 80,
+      h: 40,
     },
     "नमस्ते!",
   );
@@ -103,8 +98,8 @@ export function maxPresentation(): {
     {
       x: 800,
       y: 330,
-      w: 300,
-      h: 100,
+      w: 80,
+      h: 50,
     },
     "!سلام",
   );
@@ -114,7 +109,7 @@ export function maxPresentation(): {
     id: textId1,
     type: "text",
     text: "Hello from slide 1!",
-    font: makeFont("SST"),
+    font: defaultFont(),
     rect: rect1,
   });
   slideObjectsSlide1 = getNewOrderedMapWithPushed(
@@ -175,7 +170,7 @@ export function maxPresentation(): {
       id: textId20,
       type: "text",
       text: "Wenamecha in sama!!!",
-      font: makeFont("SST"),
+      font: defaultFont(),
       rect: rect1,
     },
   );
@@ -186,8 +181,13 @@ export function maxPresentation(): {
       id: textId21,
       type: "text",
       text: "こんにちは世界！これはテキストボックスだよ！俺はとても大切よ〜〜〜",
-      font: makeFont("SST"),
-      rect: rect2,
+      font: defaultFont(),
+      rect: {
+        x: 100,
+        y: 100,
+        w: 300,
+        h: 200,
+      },
     },
   );
 
@@ -199,8 +199,6 @@ export function maxPresentation(): {
 
   const presentation: Presentation = {
     id: generateId(),
-    // title: "maxPresentation title",
-    // title: "الحد الأقصى للعرض",
     title: "かっこいいタイトル(数日かかった)",
     slides: newOrderedMap<Slide>(),
   };

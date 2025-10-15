@@ -5,6 +5,7 @@ export type InterfaceButtonType =
   | "textField"
   | "imgObject"
   | "newSlide"
+  | "removeSlide"
   | "changeBackground"
   | "slideShow"
   | "hideUpperPanel";
