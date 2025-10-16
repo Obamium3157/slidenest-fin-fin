@@ -1,0 +1,9 @@
+.title {
+    width: 300px;
+
+    /* width: fit-content; */
+    font-size: 18px;
+    padding: 2px 7px;
+    margin-bottom: 2px;
+
+}

@@ -8,6 +8,7 @@ import { Toolbar } from "../../../widgets/toolbar/ui/Toolbar.tsx";
 import { InterfaceButtonView } from "../../../widgets/interfaceButton/ui/InterfaceButtonView.tsx";
 import appIcon from "../assets/appicon.svg";
 import type { Editor } from "../../../entities/editor/model/types.ts";
+import { Title } from "../../../widgets/title/ui/Title.tsx";
 
 export type PresentationMakerProps = {
   editor: Editor;
@@ -23,9 +24,7 @@ export function PresentationMaker(props: PresentationMakerProps) {
           <div className={styles.iconAndInterfaceWrapper}>
             <img className={styles.logo} src={appIcon} alt="Логотип" />
             <div>
-              <h1 className={styles.presentationTitle}>
-                {editor.presentation.title}
-              </h1>
+              <Title editor={editor} />
               <MenuBar items={getMenuBarItems()} />
             </div>
           </div>

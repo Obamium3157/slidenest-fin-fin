@@ -31,7 +31,7 @@ export function changePresentationTitle(
 
   if (
     newTitle !== presentation.title &&
-    0 < newTitle.length &&
+    0 <= newTitle.length &&
     newTitle.length <= MAX_PRESENTATION_TITLE_SIZE
   ) {
     return {
