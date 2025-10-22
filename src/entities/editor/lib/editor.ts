@@ -19,8 +19,8 @@ import type { Editor } from "../model/types.ts";
 
 const MAX_PRESENTATION_TITLE_SIZE: number = 70;
 const SLIDE_SIZE = {
-  w: 1400,
-  h: 900,
+  w: 1250,
+  h: 700,
 };
 
 export function changePresentationTitle(
@@ -261,14 +261,10 @@ export function changeSlideObjectPosition(
 
   const newRect = { ...obj.rect, x: newX, y: newY };
 
-  if (
-    newX < 0 ||
-    newY < 0 ||
-    newX + newRect.w > SLIDE_SIZE.w ||
-    newY + newRect.h > SLIDE_SIZE.h
-  ) {
-    return editor;
-  }
+  if (newX < 0) newRect.x = 0;
+  if (newY < 0) newRect.y = 0;
+  if (newX + newRect.w > SLIDE_SIZE.w) newRect.x = SLIDE_SIZE.w - newRect.w;
+  if (newY + newRect.h > SLIDE_SIZE.h) newRect.y = SLIDE_SIZE.h - newRect.h;
 
   return updateSlideObj<typeof obj>(editor, slideId, objId, () => ({
     rect: newRect,

@@ -199,7 +199,8 @@ export function maxPresentation(): Editor {
 
   const presentation: Presentation = {
     id: generateId(),
-    title: "かっこいいタイトル(数日かかった)",
+    // title: "かっこいいタイトル(数日かかった)",
+    title: "Название презентации",
     slides: newOrderedMap<Slide>(),
   };
   presentation.slides = getNewOrderedMapWithPushed(

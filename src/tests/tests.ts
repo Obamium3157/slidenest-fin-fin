@@ -83,7 +83,7 @@ function testAddSlide() {
 
   const minEditor = minPresentation();
   const { presentation: minP } = minEditor;
-  const resMinEditor = addSlide(minEditor, color);
+  const resMinEditor = addSlide(minEditor, color.color);
   const { presentation: resMin, select: selMin } = resMinEditor;
   assert(
     orderedMapLength(resMin.slides) === orderedMapLength(minP.slides) + 1,
@@ -96,7 +96,7 @@ function testAddSlide() {
 
   const maxEditor = maxPresentation();
   const { presentation: maxP } = maxEditor;
-  const resMaxEditor = addSlide(maxEditor, color);
+  const resMaxEditor = addSlide(maxEditor, color.color);
   const { presentation: resMax, select: selMax } = resMaxEditor;
   assert(
     orderedMapLength(resMax.slides) === orderedMapLength(maxP.slides) + 1,
@@ -218,7 +218,6 @@ function testAddTextAndImage() {
   const rect: Rect = { x: 0, y: 0, w: 100, h: 50 };
   const font: Font = {
     type: "font",
-    fontString: "Arial",
     fontFamily: "Arial",
     fontSize: "14px",
   };
@@ -238,7 +237,7 @@ function testAddTextAndImage() {
     const res1 = addText(minEditor, minSlideId, { text: "Hello", font, rect });
     const { select: s1 } = res1;
     assert(s1.selectedSlideObjId.length === 1, "Минимальная: текст добавлен");
-    const res2 = addImage(res1, minSlideId, "img.png", rect);
+    const res2 = addImage(res1, minSlideId, { src: "img.png", rect: rect });
     const { select: s2 } = res2;
     assert(
       s2.selectedSlideObjId.length === 1,
@@ -256,7 +255,7 @@ function testAddTextAndImage() {
   });
   const { select: s3 } = res3;
   assert(s3.selectedSlideObjId.length === 1, "Максимальная: текст добавлен");
-  const res4 = addImage(res3, maxSlideId, "img_max.png", rect);
+  const res4 = addImage(res3, maxSlideId, { src: "img_max.png", rect });
   const { select: s4 } = res4;
   assert(
     s4.selectedSlideObjId.length === 1,

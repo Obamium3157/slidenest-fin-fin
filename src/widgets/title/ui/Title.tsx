@@ -1,3 +1,7 @@
+//TODO: Сделать нормальный скейл размера окна ввода названия презентации
+//TODO: Поправить сдвиг поля с названием
+//TODO: Поправить шрифт у поля ввода названия презентации
+
 import styles from "./title.module.css";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useEffect, useState } from "react";
@@ -12,19 +16,14 @@ type TitleProps = {
 export function Title(props: TitleProps) {
   const { editor } = props;
 
-  const [width, setWidth] = useState(300);
-
-  const charWidthPx = 18;
+  const [width, setWidth] = useState(editor.presentation.title.length);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(changePresentationTitle, [e.target.value]);
   };
 
   useEffect(() => {
-    const newWidth = Math.max(
-      30,
-      editor.presentation.title.length * charWidthPx,
-    );
+    const newWidth = editor.presentation.title.length;
     setWidth(newWidth);
   }, [editor.presentation.title]);
 
@@ -34,7 +33,7 @@ export function Title(props: TitleProps) {
       className={styles.title}
       value={editor.presentation.title}
       style={{
-        width,
+        width: `${width + 1}ch`,
       }}
       onChange={handleInputChange}
     />

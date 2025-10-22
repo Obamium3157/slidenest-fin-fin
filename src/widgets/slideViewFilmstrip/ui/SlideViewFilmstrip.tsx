@@ -5,6 +5,10 @@ import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import * as React from "react";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import { selectSlide } from "../../../entities/editor/lib/editor.ts";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../../shared/lib/constants/constants.ts";
 
 export type SlideViewFilmstripProps = {
   slide: Slide;
@@ -19,12 +23,12 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     dispatch(selectSlide, [slide.id]);
   };
 
-  const outerWidth = 1250 / scaleFactor;
-  const outerHeight = 700 / scaleFactor;
+  const outerWidth = SLIDE_WIDTH / scaleFactor;
+  const outerHeight = SLIDE_HEIGHT / scaleFactor;
 
   const innerStyle: React.CSSProperties = {
-    width: 1250,
-    height: 700,
+    width: SLIDE_WIDTH,
+    height: SLIDE_HEIGHT,
     transform: `scale(${1 / scaleFactor})`,
     transformOrigin: "top left",
   };

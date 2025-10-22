@@ -2,7 +2,7 @@ import {
   getOrderedMapElementById,
   getOrderedMapOrder,
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
-import { SlideObjView } from "../../../entities/slideObject/ui/SlideObjView.tsx";
+import { SlideObjView } from "../../slideObject/ui/SlideObjView.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
 
 type SlideObjArrayProps = {
@@ -33,6 +33,7 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
         return (
           <SlideObjView
             key={idx}
+            slideId={slide.id}
             slideObj={obj}
             isSelected={selectedObjectId === obj.id}
             onSelect={() => onSelectObject?.(obj.id)}

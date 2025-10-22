@@ -1,6 +1,5 @@
 .filmstrip {
-    /* width: 15%; */
-    width: fit-content;
+    /* width: fit-content; */
     margin-right: 1%;
     padding: 0 1%;
     overflow-y: auto;

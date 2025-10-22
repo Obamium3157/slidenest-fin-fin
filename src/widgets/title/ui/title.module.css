@@ -3,7 +3,9 @@
 
     /* width: fit-content; */
     font-size: 18px;
-    padding: 2px 7px;
-    margin-bottom: 2px;
+    padding: 2px;
+
+    /* padding: 2px 7px; */
+    margin: 0 7px 2px;
 
 }
