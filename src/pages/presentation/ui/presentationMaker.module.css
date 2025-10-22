@@ -8,13 +8,13 @@
 .mainField {
   display: flex;
   flex-direction: column;
-  color: var(--default-font-color);
+
+  /* color: var(--default-font-color); */
   margin-left: 50px;
   height: 100vh;
 }
 
 .headerPanel {
-  font: var(--title-font);
   margin-bottom: 15px;
 }
 
@@ -45,7 +45,6 @@
 }
 
 .workField {
-  font: var(--default-font);
   display: flex;
   height: 100vh;
   flex-direction: row;

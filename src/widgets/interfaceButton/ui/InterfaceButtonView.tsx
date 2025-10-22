@@ -11,6 +11,7 @@ import changeBackground from "../assets/tabler/background.svg";
 import hideUpperPanel from "../assets/tabler/chevron-up.svg";
 
 import styles from "./interfaceButtonView.module.css";
+import defaultFont from "../../../shared/ui/defaultFont/defaultFont.module.css";
 
 type InterfaceButtonViewProps = {
   type: InterfaceButtonType;
@@ -41,7 +42,11 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
   if (!src) return null;
 
   return (
-    <button className={styles.toolbarButton} onClick={onClick} title={alt}>
+    <button
+      className={`${styles.toolbarButton} ${defaultFont.defaultFont}`}
+      onClick={onClick}
+      title={alt}
+    >
       <img className={styles.toolbarIcon} src={src} alt={alt} />
     </button>
   );

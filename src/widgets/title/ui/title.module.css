@@ -1,11 +1,6 @@
 .title {
     width: 300px;
-
-    /* width: fit-content; */
-    font-size: 18px;
-    padding: 2px;
-
-    /* padding: 2px 7px; */
+    font: 500 18px/22px SST, sans-serif;
+    color: #222;
     margin: 0 7px 2px;
-
 }

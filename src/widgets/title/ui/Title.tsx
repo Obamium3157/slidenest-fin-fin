@@ -1,7 +1,3 @@
-//TODO: Сделать нормальный скейл размера окна ввода названия презентации
-//TODO: Поправить сдвиг поля с названием
-//TODO: Поправить шрифт у поля ввода названия презентации
-
 import styles from "./title.module.css";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useEffect, useState } from "react";

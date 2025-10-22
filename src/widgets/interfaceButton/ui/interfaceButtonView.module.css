@@ -2,10 +2,11 @@
     width: fit-content;
     height: 40px;
     padding: 10px 16px;
-    border: 2px solid var(--filmstrip-slide-border-color);
+    border: 2px solid #423e3e4c;
     border-radius: 100px;
     background: white;
-    font: var(--default-font);
+    font: 400 14px/12px SST, sans-serif;
+    color: #222;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -34,7 +35,7 @@
 }
 
 .toolbarButton:focus-visible {
-    outline: 2px solid var(--filmstrip-slide-border-color);
+    outline: 2px solid #423e3e4c;
 }
 
 .toolbarIcon {

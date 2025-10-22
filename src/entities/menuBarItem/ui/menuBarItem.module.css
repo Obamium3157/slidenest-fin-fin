@@ -4,9 +4,11 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  font: var(--default-font);
+
+   /* font: var(--default-font); */
   font-size: 14px;
-  color: var(--default-font-color);
+
+  /* color: var(--default-font-color); */
   width: fit-content;
   height: 24px;
   padding: 2px 7px;
@@ -17,11 +19,6 @@
 }
 
 .menuBarItem:hover {
-  transition-duration: var(--default-transition-time);
+  transition-duration: 0.2s;
   background-color: lightgrey;
-}
-
-.menuBarItemOption {
-  font: var(--default-font);
-  color: var(--default-font-color);
 }

@@ -1,0 +1,20 @@
+@font-face {
+    font-family: SST;
+    src: url("SSTRg.TTF") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: SST;
+    src: url("SSTBold.TTF") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: SST;
+    src: url("SSTRgIt.TTF") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
