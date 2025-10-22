@@ -84,7 +84,6 @@ export function removeSlide(editor: Editor, targetSlideId: string): Editor {
     (id: string) => id !== targetSlideId,
   );
   select.selectedSlideObjId = [];
-
   return { presentation: newPresentation, select };
 }
 

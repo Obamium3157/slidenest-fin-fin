@@ -5,7 +5,6 @@ import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { useDraggable } from "../../../entities/useDraggable/lib/useDraggable.tsx";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import { changeSlideObjectPosition } from "../../../entities/editor/lib/editor.ts";
-import { useEffect } from "react";
 
 export type SlideObjViewProps = {
   slideId: string;
@@ -41,21 +40,17 @@ export function SlideObjView(props: SlideObjViewProps) {
 
   const { x, y, w, h } = slideObj.rect;
 
-  const { pos, onMouseDown, setPos } = useDraggable({
+  const { onMouseDown } = useDraggable({
     initialX: x,
     initialY: y,
-    onDragEnd: (p) => {
+    onDrag: (p) => {
       dispatch(changeSlideObjectPosition, [slideId, slideObj.id, p.x, p.y]);
     },
   });
 
-  useEffect(() => {
-    setPos({ x, y });
-  }, [x, y, setPos]);
-
   const baseStyle: React.CSSProperties = {
-    left: `${pos.x}px`,
-    top: `${pos.y}px`,
+    left: `${slideObj.rect.x}px`,
+    top: `${slideObj.rect.y}px`,
     width: `${w}px`,
     height: `${h}px`,
     position: "absolute",
@@ -71,12 +66,18 @@ export function SlideObjView(props: SlideObjViewProps) {
       onClick={handleClick}
     >
       {slideObj.type === "text" ? (
-        <div
+        // <div
+        //   className={styles.slideObj__text}
+        //   style={getStyleFromFont(slideObj.font)}
+        // >
+        //   {slideObj.text}
+        // </div>
+        <input
           className={styles.slideObj__text}
           style={getStyleFromFont(slideObj.font)}
-        >
-          {slideObj.text}
-        </div>
+          value={slideObj.text}
+          onChange={(e) => console.log(e.target.value)}
+        />
       ) : slideObj.type === "image" ? (
         <img
           src={slideObj.src}

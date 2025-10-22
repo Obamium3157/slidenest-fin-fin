@@ -5,42 +5,44 @@ import * as React from "react";
 type DraggableArgs = {
   initialX: number;
   initialY: number;
-  onDragEnd?: (pos: Point) => void;
+  onDrag?: (pos: Point) => void;
 };
 
 export function useDraggable(args: DraggableArgs) {
-  const { initialX, initialY, onDragEnd } = args;
+  const { initialX, initialY, onDrag } = args;
 
   const [pos, setPos] = useState<Point>({ x: initialX, y: initialY });
   const [isDragging, setIsDragging] = useState(false);
+  const offsetRef = useRef<Point>({ x: 0, y: 0 });
 
-  const offSetRef = useRef<Point>({ x: 0, y: 0 });
-  const posRef = useRef<Point>(pos);
-  posRef.current = pos;
-  const onDragEndRef = useRef(onDragEnd);
-  onDragEndRef.current = onDragEnd;
+  const onDragRef = useRef(onDrag);
+  onDragRef.current = onDrag;
 
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    offSetRef.current = {
-      x: posRef.current.x - e.clientX,
-      y: posRef.current.y - e.clientY,
-    };
-  }, []);
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+      offsetRef.current = {
+        x: pos.x - e.clientX,
+        y: pos.y - e.clientY,
+      };
+    },
+    [pos],
+  );
 
   useEffect(() => {
     if (!isDragging) return;
 
-    const onMouseMove = (event: MouseEvent) => {
-      const newX = offSetRef.current.x + event.clientX;
-      const newY = offSetRef.current.y + event.clientY;
+    const onMouseMove = (e: MouseEvent) => {
+      const newX = offsetRef.current.x + e.clientX;
+      const newY = offsetRef.current.y + e.clientY;
+
       setPos({ x: newX, y: newY });
+      if (onDragRef.current) onDragRef.current({ x: newX, y: newY });
     };
 
     const onMouseUp = () => {
       setIsDragging(false);
-      if (onDragEndRef.current) onDragEndRef.current(posRef.current);
     };
 
     window.addEventListener("mousemove", onMouseMove);
@@ -50,12 +52,7 @@ export function useDraggable(args: DraggableArgs) {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, pos]);
 
-  return {
-    pos,
-    setPos,
-    isDragging,
-    onMouseDown,
-  };
+  return { onMouseDown };
 }
