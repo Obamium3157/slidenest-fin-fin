@@ -19,6 +19,7 @@
     white-space: pre-wrap;
     overflow: hidden;
     font: inherit;
+    background: transparent;
 }
 
 .slideObj__image {

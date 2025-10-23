@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import * as React from "react";
 
 type PickedImage = {
   file: File;
@@ -7,17 +8,14 @@ type PickedImage = {
   height: number;
 };
 
-export function useImagePicker() {
+export function useImagePicker(
+  inputRef?: React.RefObject<HTMLInputElement | null>,
+) {
   const readFileAsDataURL = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onerror = () => {
-        reader.abort();
-        reject(new Error("Ошибка чтения файла"));
-      };
-      reader.onload = () => {
-        resolve(String(reader.result));
-      };
+      reader.onerror = () => reject(new Error("Ошибка чтения файла"));
+      reader.onload = () => resolve(String(reader.result));
       reader.readAsDataURL(file);
     });
 
@@ -32,56 +30,43 @@ export function useImagePicker() {
       img.src = src;
     });
 
-  const pickImage = useCallback(
-    async (accept = "image/*"): Promise<PickedImage | null> => {
-      return new Promise((resolve, reject) => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = accept;
-        input.style.display = "none";
+  const pickImage = useCallback(async (): Promise<PickedImage | null> => {
+    const input = inputRef?.current;
+    if (!input) {
+      return Promise.resolve(null);
+    }
 
-        input.onchange = async () => {
-          try {
-            const files = input.files;
-            if (!files || files.length === 0) {
-              resolve(null);
-              input.remove();
-              return;
-            }
-            const file = files[0];
-            if (!file.type.startsWith("image/")) {
-              resolve(null);
-              input.remove();
-              return;
-            }
+    return new Promise((resolve, reject) => {
+      const onChange = async () => {
+        try {
+          const files = input.files;
+          input.value = "";
+          input.removeEventListener("change", onChange);
 
-            const dataUrl = await readFileAsDataURL(file);
-            const { width, height } = await loadImageSize(dataUrl);
-
-            resolve({
-              file,
-              dataUrl,
-              width,
-              height,
-            });
-          } catch (error) {
-            reject(error);
-          } finally {
-            try {
-              input.remove();
-            } catch {
-              /* empty */
-            }
+          if (!files || files.length === 0) {
+            resolve(null);
+            return;
           }
-        };
 
-        document.body.appendChild(input);
-        input.value = "";
-        input.click();
-      });
-    },
-    [],
-  );
+          const file = files[0];
+          if (!file.type.startsWith("image/")) {
+            resolve(null);
+            return;
+          }
+
+          const dataUrl = await readFileAsDataURL(file);
+          const { width, height } = await loadImageSize(dataUrl);
+
+          resolve({ file, dataUrl, width, height });
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      input.addEventListener("change", onChange, { once: true });
+      input.click();
+    });
+  }, [inputRef]);
 
   return { pickImage };
 }

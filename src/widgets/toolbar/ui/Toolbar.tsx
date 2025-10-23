@@ -6,6 +6,7 @@ import {
   addImage,
   addSlide,
   addText,
+  changeSlideBackgroundColor,
   removeSlide,
 } from "../../../entities/editor/lib/editor.ts";
 import { defaultTextObjectParameters } from "../../../entities/slideText/model/test/data.ts";
@@ -16,6 +17,8 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
+import { useColorPicker } from "../../../entities/useColorPicker/lib/useColorPicker.tsx";
+import { useRef } from "react";
 
 type ToolbarProps = {
   select: Select;
@@ -23,7 +26,12 @@ type ToolbarProps = {
 
 export function Toolbar(props: ToolbarProps) {
   const { select } = props;
-  const { pickImage } = useImagePicker();
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const colorInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { pickImage } = useImagePicker(fileInputRef);
+  const { pickColor } = useColorPicker(colorInputRef);
 
   const handleCreateSlide = (): void => {
     dispatch(addSlide, ["#ffffff"]);
@@ -54,7 +62,7 @@ export function Toolbar(props: ToolbarProps) {
     if (!id) return;
 
     try {
-      const picked = await pickImage("image/*");
+      const picked = await pickImage();
       if (!picked) return;
 
       const maxW = SLIDE_WIDTH;
@@ -84,37 +92,68 @@ export function Toolbar(props: ToolbarProps) {
     }
   };
 
+  const handleChangeBackgroundColor = async (): Promise<void> => {
+    const id = select.selectedSlideId[0];
+    if (!id) return;
+
+    try {
+      const newColor = await pickColor();
+      if (!newColor) return;
+      dispatch(changeSlideBackgroundColor, [
+        id,
+        { type: "color", color: newColor },
+      ]);
+    } catch (e) {
+      console.error("Ошибка при выборе цвета фона: ", e);
+    }
+  };
+
   return (
-    <div className={styles.toolbar}>
-      <div className={styles.buttonsWrapper}>
-        <InterfaceButtonView
-          type={"newSlide"}
-          alt={"Новый слайд"}
-          onClick={handleCreateSlide}
-        />
-        <InterfaceButtonView
-          type={"removeSlide"}
-          alt={"Удалить слайд"}
-          onClick={handleRemoveSlide}
-        />
-        <InterfaceButtonView type={"undo"} alt={"Отменить"} />
-        <InterfaceButtonView type={"redo"} alt={"Повторить"} />
-        <InterfaceButtonView type={"cursor"} alt={"Выбрать (Esc)"} />
-        <InterfaceButtonView
-          type={"textField"}
-          alt={"Вставить текст"}
-          onClick={handleAddText}
-        />
-        <InterfaceButtonView
-          type={"imgObject"}
-          alt={"Вставить изображение"}
-          onClick={handleAddImage}
-        />
-        <InterfaceButtonView type={"changeBackground"} alt={"Сменить фон"} />
+    <>
+      <div className={styles.toolbar}>
+        <div className={styles.buttonsWrapper}>
+          <InterfaceButtonView
+            type={"newSlide"}
+            alt={"Новый слайд"}
+            onClick={handleCreateSlide}
+          />
+          <InterfaceButtonView
+            type={"removeSlide"}
+            alt={"Удалить слайд"}
+            onClick={handleRemoveSlide}
+          />
+          <InterfaceButtonView type={"undo"} alt={"Отменить"} />
+          <InterfaceButtonView type={"redo"} alt={"Повторить"} />
+          <InterfaceButtonView type={"cursor"} alt={"Выбрать (Esc)"} />
+          <InterfaceButtonView
+            type={"textField"}
+            alt={"Вставить текст"}
+            onClick={handleAddText}
+          />
+          <InterfaceButtonView
+            type={"imgObject"}
+            alt={"Вставить изображение"}
+            onClick={handleAddImage}
+          />
+          <InterfaceButtonView
+            type={"changeBackground"}
+            alt={"Сменить фон"}
+            onClick={handleChangeBackgroundColor}
+          />
+        </div>
+        <div className={styles.buttonsWrapper}>
+          <InterfaceButtonView type={"hideUpperPanel"} alt={"Скрыть меню"} />
+        </div>
       </div>
-      <div className={styles.buttonsWrapper}>
-        <InterfaceButtonView type={"hideUpperPanel"} alt={"Скрыть меню"} />
-      </div>
-    </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+      />
+
+      <input ref={colorInputRef} type="color" style={{ display: "none" }} />
+    </>
   );
 }
