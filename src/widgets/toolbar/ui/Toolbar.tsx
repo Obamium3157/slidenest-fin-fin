@@ -9,14 +9,7 @@ import {
   changeSlideBackgroundColor,
   removeSlide,
 } from "../../../entities/editor/lib/editor.ts";
-import { defaultTextObjectParameters } from "../../../entities/slideText/model/test/data.ts";
-import type { Rect } from "../../../shared/types/rect/Rect.ts";
-import { defaultSlideImage } from "../../../entities/slideImage/lib/defaultSlideImage.ts";
 import { useImagePicker } from "../../../entities/useImagePicker/lib/useImagePicker.tsx";
-import {
-  SLIDE_HEIGHT,
-  SLIDE_WIDTH,
-} from "../../../shared/lib/constants/constants.ts";
 import { useColorPicker } from "../../../entities/useColorPicker/lib/useColorPicker.tsx";
 import { useRef } from "react";
 
@@ -34,7 +27,7 @@ export function Toolbar(props: ToolbarProps) {
   const { pickColor } = useColorPicker(colorInputRef);
 
   const handleCreateSlide = (): void => {
-    dispatch(addSlide, ["#ffffff"]);
+    dispatch(addSlide);
   };
 
   const handleRemoveSlide = (): void => {
@@ -47,14 +40,7 @@ export function Toolbar(props: ToolbarProps) {
   const handleAddText = (): void => {
     const id = select.selectedSlideId[0];
     if (!id) return;
-
-    const rect: Rect = {
-      x: 15,
-      y: 15,
-      w: 220,
-      h: 50,
-    };
-    dispatch(addText, [id, { ...defaultTextObjectParameters(), rect }]);
+    dispatch(addText, [id]);
   };
 
   const handleAddImage = async (): Promise<void> => {
@@ -65,28 +51,7 @@ export function Toolbar(props: ToolbarProps) {
       const picked = await pickImage();
       if (!picked) return;
 
-      const maxW = SLIDE_WIDTH;
-      const maxH = SLIDE_HEIGHT;
-      let w = picked.width;
-      let h = picked.height;
-      const scale = Math.min(1, maxW / w, maxH / h);
-      w = Math.round(w * scale);
-      h = Math.round(h * scale);
-
-      const rect: Rect = {
-        x: 20,
-        y: 20,
-        w,
-        h,
-      };
-
-      const imageObject = {
-        ...defaultSlideImage(),
-        src: picked.dataUrl,
-        rect,
-      };
-
-      dispatch(addImage, [id, imageObject]);
+      dispatch(addImage, [id, picked.dataUrl, picked.width, picked.height]);
     } catch (e) {
       console.error("Ошибка при выборе изображения: ", e);
     }
@@ -99,10 +64,7 @@ export function Toolbar(props: ToolbarProps) {
     try {
       const newColor = await pickColor();
       if (!newColor) return;
-      dispatch(changeSlideBackgroundColor, [
-        id,
-        { type: "color", color: newColor },
-      ]);
+      dispatch(changeSlideBackgroundColor, [id, newColor]);
     } catch (e) {
       console.error("Ошибка при выборе цвета фона: ", e);
     }

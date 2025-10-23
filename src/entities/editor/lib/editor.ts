@@ -1,8 +1,10 @@
 import {
+  findOrderedMapElementIndex,
   getNewOrderedMapWithMoved,
   getNewOrderedMapWithPushed,
   getNewOrderedMapWithRemoved,
   getOrderedMapElementById,
+  getOrderedMapOrder,
   newOrderedMap,
   type OrderedMap,
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
@@ -16,6 +18,11 @@ import { generateId } from "../../../shared/lib/generateId.ts";
 import type { SlideImage } from "../../slideImage/model/types.ts";
 import type { Presentation } from "../../presentation/model/types.ts";
 import type { Editor } from "../model/types.ts";
+import { defaultTextObjectParameters } from "../../slideText/model/test/data.ts";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../../shared/lib/constants/constants.ts";
 
 const MAX_PRESENTATION_TITLE_SIZE: number = 70;
 const SLIDE_SIZE = {
@@ -43,9 +50,9 @@ export function changePresentationTitle(
   return editor;
 }
 
-export function addSlide(editor: Editor, backgroundColor: string): Editor {
-  const { presentation, select } = editor;
-  const col: Color = { type: "color", color: backgroundColor };
+export function addSlide(editor: Editor): Editor {
+  const { presentation } = editor;
+  const col: Color = { type: "color", color: "#ffffff" };
   const newId: string = generateId();
   const newSlide: Slide = {
     id: newId,
@@ -63,28 +70,50 @@ export function addSlide(editor: Editor, backgroundColor: string): Editor {
     slides: newSlides,
   };
 
-  const newSelect: Select = { ...select, selectedSlideObjId: [] };
+  const newSelect: Select = {
+    selectedSlideId: [newSlide.id],
+    selectedSlideObjId: [],
+  };
 
   return { presentation: newPresentation, select: newSelect };
 }
 
 export function removeSlide(editor: Editor, targetSlideId: string): Editor {
   const { presentation, select } = editor;
+
+  const deletedIndex = findOrderedMapElementIndex(
+    presentation.slides,
+    targetSlideId,
+  );
+
   const newSlides: OrderedMap<Slide> = getNewOrderedMapWithRemoved(
     presentation.slides,
     targetSlideId,
   );
+
+  const newSlidesOrder = getOrderedMapOrder(newSlides);
 
   const newPresentation = {
     ...presentation,
     slides: newSlides,
   };
 
-  select.selectedSlideId = select.selectedSlideId.filter(
-    (id: string) => id !== targetSlideId,
-  );
-  select.selectedSlideObjId = [];
-  return { presentation: newPresentation, select };
+  // select.selectedSlideId = [];
+  // select.selectedSlideObjId = [];
+  const newSelect: Select = { selectedSlideId: [], selectedSlideObjId: [] };
+
+  if (deletedIndex === -1) {
+    return { presentation, select };
+  } else if (deletedIndex > 0) {
+    newSelect.selectedSlideId = [newSlidesOrder[deletedIndex - 1]];
+  } else {
+    // === 0
+    if (newSlidesOrder.length > 0) {
+      newSelect.selectedSlideId = [newSlidesOrder[0]];
+    }
+  }
+
+  return { presentation: newPresentation, select: newSelect };
 }
 
 export function moveSlide(
@@ -139,11 +168,7 @@ export function removeSlideObj(
   };
 }
 
-export function addText(
-  editor: Editor,
-  slideId: string,
-  textProps: { text: string; font: Font; rect: Rect },
-): Editor {
+export function addText(editor: Editor, slideId: string): Editor {
   const { presentation, select } = editor;
 
   const slide = getOrderedMapElementById(presentation.slides, slideId);
@@ -155,7 +180,18 @@ export function addText(
   }
 
   const id: string = generateId();
-  const textObj: SlideText = { type: "text", id, ...textProps };
+  const rect: Rect = {
+    x: 15,
+    y: 15,
+    w: 220,
+    h: 50,
+  };
+  const textObj: SlideText = {
+    type: "text",
+    id,
+    ...defaultTextObjectParameters(),
+    rect,
+  };
 
   const newSlide: Slide = {
     ...slide,
@@ -175,10 +211,11 @@ export function addText(
 export function addImage(
   editor: Editor,
   slideId: string,
-  imageProps: { src: string; rect: Rect },
+  src: string,
+  w: number,
+  h: number,
 ): Editor {
   const { presentation, select } = editor;
-  const { src, rect } = imageProps;
 
   const slide = getOrderedMapElementById(presentation.slides, slideId);
 
@@ -190,10 +227,32 @@ export function addImage(
   }
 
   const id: string = generateId();
-  const imageObj: SlideImage = { id, type: "image", src, rect };
+
+  const scale = Math.min(1, SLIDE_WIDTH / w, SLIDE_HEIGHT / h);
+  w = Math.round(w * scale);
+  h = Math.round(h * scale);
+
+  const rect: Rect = {
+    x: 20,
+    y: 20,
+    w,
+    h,
+  };
+
+  const imageObject: SlideImage = {
+    type: "image",
+    id,
+    src,
+    rect,
+  };
+
   const newSlide: Slide = {
     ...slide,
-    slideObjects: getNewOrderedMapWithPushed(slide.slideObjects, id, imageObj),
+    slideObjects: getNewOrderedMapWithPushed(
+      slide.slideObjects,
+      id,
+      imageObject,
+    ),
   };
   const newPresentation = {
     ...presentation,
@@ -451,7 +510,7 @@ export function changeTextTransform(
 export function changeSlideBackgroundColor(
   editor: Editor,
   slideId: string,
-  newColor: Color,
+  newColor: string,
 ): Editor {
   const { presentation, select } = editor;
 
@@ -459,11 +518,14 @@ export function changeSlideBackgroundColor(
   if (!slide) {
     return editor;
   }
-  if (slide.backgroundColor.color === newColor.color) {
+  if (slide.backgroundColor.color === newColor) {
     return editor;
   }
 
-  const newSlide: Slide = { ...slide, backgroundColor: newColor };
+  const newSlide: Slide = {
+    ...slide,
+    backgroundColor: { type: "color", color: newColor },
+  };
 
   return {
     presentation: {

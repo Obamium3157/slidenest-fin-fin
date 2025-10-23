@@ -1,6 +1,6 @@
 .workspace {
   display: flex;
   flex-direction: column;
-  width: 100vw;
+  width: 70vw;
   align-items: flex-start;
 }

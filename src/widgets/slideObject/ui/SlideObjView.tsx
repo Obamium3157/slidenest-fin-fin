@@ -66,19 +66,19 @@ export function SlideObjView(props: SlideObjViewProps) {
       onClick={handleClick}
     >
       {slideObj.type === "text" ? (
-        // <div
-        //   className={styles.slideObj__text}
-        //   style={getStyleFromFont(slideObj.font)}
-        // >
-        //   {slideObj.text}
-        // </div>
-        <input
+        <div
           className={styles.slideObj__text}
           style={getStyleFromFont(slideObj.font)}
-          value={slideObj.text}
-          onChange={(e) => console.log(e.target.value)}
-        />
-      ) : slideObj.type === "image" ? (
+        >
+          {slideObj.text}
+        </div>
+      ) : // <input
+      //   className={styles.slideObj__text}
+      //   style={getStyleFromFont(slideObj.font)}
+      //   value={slideObj.text}
+      //   onChange={(e) => console.log(e.target.value)}
+      // />
+      slideObj.type === "image" ? (
         <img
           src={slideObj.src}
           alt="изображение на слайде"

@@ -22,10 +22,6 @@ export function getOrderedMapElementById<T>(
   return map.collection[id];
 }
 
-export function getOrderedMapCollection<T>(map: OrderedMap<T>): Collection<T> {
-  return { ...map.collection };
-}
-
 export function getOrderedMapOrder<T>(map: OrderedMap<T>): string[] {
   return [...map.order];
 }
@@ -88,4 +84,11 @@ export function getNewOrderedMapWithMoved<T>(
 
 export function orderedMapLength<T>(map: OrderedMap<T>): number {
   return map.order.length;
+}
+
+export function findOrderedMapElementIndex<T>(
+  map: OrderedMap<T>,
+  id: string,
+): number {
+  return map.order.findIndex((x) => x === id);
 }
