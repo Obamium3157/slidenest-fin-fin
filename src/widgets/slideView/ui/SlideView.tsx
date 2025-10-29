@@ -34,10 +34,10 @@ export function SlideView(props: SlideViewProps) {
           dispatch(removeSlideObj, [slide.id, selectedObjectId]);
           break;
         }
-        case "Escape": {
-          setSelectedObjectId(null);
-          break;
-        }
+        // case "Escape": {
+        //   setSelectedObjectId(null);
+        //   break;
+        // }
         default: {
           break;
         }
@@ -67,7 +67,9 @@ export function SlideView(props: SlideViewProps) {
       <AllSlideObjects
         slide={slide}
         selectedObjectId={selectedObjectId}
-        onSelectObject={(id: string | null) => setSelectedObjectId(id)}
+        onSelectObject={(id: string | null) => {
+          setSelectedObjectId(id);
+        }}
         stopPropagation={true}
       />
     </div>

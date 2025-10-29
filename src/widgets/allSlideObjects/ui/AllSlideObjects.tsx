@@ -37,6 +37,9 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
             slideObj={obj}
             isSelected={selectedObjectId === obj.id}
             onSelect={() => onSelectObject?.(obj.id)}
+            onDeselect={() => {
+              onSelectObject?.(null);
+            }}
             stopPropagation={stopPropagation}
           />
         );
