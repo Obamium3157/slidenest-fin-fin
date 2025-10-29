@@ -25,6 +25,7 @@ import {
 } from "../../../shared/lib/constants/constants.ts";
 
 const MAX_PRESENTATION_TITLE_SIZE: number = 70;
+export const PRESENTATION_TITLE_PLACEHOLDER: string = "Название презентации";
 const SLIDE_SIZE = {
   w: 1250,
   h: 700,

@@ -3,7 +3,10 @@ import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useEffect, useState } from "react";
 import * as React from "react";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { changePresentationTitle } from "../../../entities/editor/lib/editor.ts";
+import {
+  changePresentationTitle,
+  PRESENTATION_TITLE_PLACEHOLDER,
+} from "../../../entities/editor/lib/editor.ts";
 
 type TitleProps = {
   editor: Editor;
@@ -20,7 +23,7 @@ export function Title(props: TitleProps) {
 
   useEffect(() => {
     const newWidth = editor.presentation.title.length;
-    setWidth(newWidth);
+    setWidth(newWidth === 0 ? PRESENTATION_TITLE_PLACEHOLDER.length : newWidth);
   }, [editor.presentation.title]);
 
   return (
@@ -31,6 +34,7 @@ export function Title(props: TitleProps) {
       style={{
         width: `${width + 1}ch`,
       }}
+      placeholder={"Название презентации"}
       onChange={handleInputChange}
     />
   );
