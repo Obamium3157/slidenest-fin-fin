@@ -31,6 +31,8 @@ const SLIDE_SIZE = {
   h: 700,
 };
 
+export const MIN_FONT_SIZE = 8;
+
 export function changePresentationTitle(
   editor: Editor,
   newTitle: string,

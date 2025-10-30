@@ -5,8 +5,10 @@ import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { useDraggable } from "../../../entities/useDraggable/lib/useDraggable.tsx";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import {
+  changeFontSize,
   changeSlideObjectPosition,
   changeSlideObjSize,
+  MIN_FONT_SIZE,
 } from "../../../entities/editor/lib/editor.ts";
 import { useRef } from "react";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
@@ -20,6 +22,50 @@ export type SlideObjViewProps = {
   onDeselect?: () => void;
   stopPropagation?: boolean;
 };
+
+function parseFontSize(fontSize: string | undefined): {
+  value: number;
+  unit: string;
+} {
+  if (!fontSize) {
+    return { value: 14, unit: "px" };
+  }
+
+  const str = fontSize.trim();
+  if (str.length === 0) {
+    return { value: 14, unit: "px" };
+  }
+
+  let i = 0;
+  let hasDot = false;
+  let numberPart = "";
+
+  if (str[i] === "-" || str[i] === "+") {
+    numberPart += str[i];
+    i++;
+  }
+
+  for (; i < str.length; i++) {
+    const ch = str[i];
+    if (ch >= "0" && ch <= "9") {
+      numberPart += ch;
+    } else if (ch === "." && !hasDot) {
+      hasDot = true;
+      numberPart += ch;
+    } else {
+      break;
+    }
+  }
+
+  const rest = str.slice(i).trim();
+  const num = Number(numberPart);
+  if (Number.isNaN(num)) {
+    return { value: 14, unit: "px" };
+  }
+
+  const unit = rest.length > 0 ? rest : "px";
+  return { value: num, unit };
+}
 
 export function SlideObjView(props: SlideObjViewProps) {
   const {
@@ -114,6 +160,33 @@ export function SlideObjView(props: SlideObjViewProps) {
       newRect.x,
       newRect.y,
     ]);
+
+    if (slideObj.type === "text") {
+      const textObj = slideObj;
+      const oldW = slideObj.rect.w;
+      const oldH = slideObj.rect.h;
+      const width = newRect.w;
+      const height = newRect.h;
+
+      if ((oldW === 0 && oldH === 0) || (width === 0 && height === 0)) {
+        return;
+      }
+
+      const scale =
+        Math.hypot(width, height) / Math.hypot(oldW || 0, oldH || 0);
+
+      const rawFontSize = textObj.font?.fontSize;
+      const { value: oldFontSizeNum, unit } = parseFontSize(rawFontSize);
+
+      const newFontSizeNum = Math.max(
+        Math.round(oldFontSizeNum * scale),
+        MIN_FONT_SIZE,
+      );
+
+      const newFontSizeStr = `${newFontSizeNum}${unit}`;
+
+      dispatch(changeFontSize, [slideId, slideObj.id, newFontSizeStr]);
+    }
   };
 
   return (
