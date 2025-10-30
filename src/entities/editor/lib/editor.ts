@@ -351,7 +351,12 @@ export function changeSlideObjSize(
 
   const newRect = { ...obj.rect, w: newW, h: newH };
 
-  if (newW <= 0 || newH <= 0 || newW > SLIDE_SIZE.w || newH > SLIDE_SIZE.h) {
+  const MIN_SIZE = 20;
+
+  if (newW <= MIN_SIZE || newW > SLIDE_SIZE.w) {
+    return editor;
+  }
+  if (newH <= MIN_SIZE || newH > SLIDE_SIZE.h) {
     return editor;
   }
 

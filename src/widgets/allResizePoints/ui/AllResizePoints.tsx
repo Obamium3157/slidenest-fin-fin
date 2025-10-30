@@ -12,9 +12,13 @@ export function AllResizePoints(props: AllResizePointsProps) {
   const { parentRect, onResize } = props;
   const points: ResizePointType[] = [
     "TOP_LEFT",
+    "TOP",
     "TOP_RIGHT",
+    "RIGHT",
     "BOTTOM_LEFT",
+    "BOTTOM",
     "BOTTOM_RIGHT",
+    "LEFT",
   ];
   return (
     <div className={styles.allResizePointsWrapper}>

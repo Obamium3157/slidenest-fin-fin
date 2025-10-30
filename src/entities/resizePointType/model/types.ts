@@ -4,4 +4,8 @@ export type ResizePointType =
   | "TOP_LEFT"
   | "TOP_RIGHT"
   | "BOTTOM_RIGHT"
-  | "BOTTOM_LEFT";
+  | "BOTTOM_LEFT"
+  | "TOP"
+  | "LEFT"
+  | "BOTTOM"
+  | "RIGHT";
