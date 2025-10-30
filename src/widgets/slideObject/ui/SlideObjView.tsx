@@ -4,9 +4,13 @@ import styles from "./slideObjView.module.css";
 import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { useDraggable } from "../../../entities/useDraggable/lib/useDraggable.tsx";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { changeSlideObjectPosition } from "../../../entities/editor/lib/editor.ts";
+import {
+  changeSlideObjectPosition,
+  changeSlideObjSize,
+} from "../../../entities/editor/lib/editor.ts";
 import { useRef } from "react";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
+import type { Rect } from "../../../shared/types/rect/Rect.ts";
 
 export type SlideObjViewProps = {
   slideId: string;
@@ -24,12 +28,12 @@ export function SlideObjView(props: SlideObjViewProps) {
     isSelected = false,
     onSelect,
     onDeselect,
-    stopPropagation,
+    stopPropagation = false,
   } = props;
 
   const [isHovered, setHovered] = React.useState(false);
-  const isDraggingRef = useRef(false);
-  const pointerDownRef = useRef(false);
+  const startRectRef = useRef<Rect | null>(null);
+  const didDragRef = useRef(false);
 
   const className = `${styles.slideObj} ${
     isSelected
@@ -39,75 +43,91 @@ export function SlideObjView(props: SlideObjViewProps) {
         : ""
   }`;
 
+  const { x, y, w, h } = slideObj.rect;
+
   const handleClick = (e: React.MouseEvent) => {
     if (stopPropagation) e.stopPropagation();
 
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false;
+    if (didDragRef.current) {
+      didDragRef.current = false;
       return;
     }
 
     onSelect?.();
   };
 
-  const { x, y, w, h } = slideObj.rect;
+  const { onPointerDown, isDraggingRef } = useDraggable({
+    preventDefault: true,
+    stopPropagation: stopPropagation,
+    onStart: () => {
+      startRectRef.current = slideObj.rect;
+    },
+    onDrag: ({ dx, dy }) => {
+      const start = startRectRef.current;
+      if (!start) return;
 
-  const { onMouseDown } = useDraggable({
-    initialX: x,
-    initialY: y,
-    onDrag: (p) => {
-      if (!pointerDownRef.current) return;
-
+      didDragRef.current = true;
       isDraggingRef.current = true;
-      dispatch(changeSlideObjectPosition, [slideId, slideObj.id, p.x, p.y]);
+
+      const newX = Math.round(start.x + dx);
+      const newY = Math.round(start.y + dy);
+
+      dispatch(changeSlideObjectPosition, [slideId, slideObj.id, newX, newY]);
+    },
+    onEnd: () => {
+      if (didDragRef.current) {
+        onDeselect?.();
+      }
+
+      setTimeout(() => {
+        didDragRef.current = false;
+        isDraggingRef.current = false;
+      }, 0);
+
+      startRectRef.current = null;
     },
   });
 
-  const handleMouseDownWrapper = (e: React.MouseEvent) => {
+  const handlePointerDownWrapper = (e: React.PointerEvent) => {
     if (stopPropagation) e.stopPropagation();
-
-    pointerDownRef.current = true;
 
     onSelect?.();
 
-    onMouseDown(e);
-
-    const onEnd = () => {
-      if (isDraggingRef.current) {
-        onDeselect?.();
-      }
-      pointerDownRef.current = false;
-
-      setTimeout(() => {
-        isDraggingRef.current = false;
-      }, 0);
-    };
-
-    window.addEventListener("pointerup", onEnd, { once: true });
-    window.addEventListener("mouseup", onEnd, { once: true });
-    window.addEventListener("touchend", onEnd, { once: true });
-    window.addEventListener("pointercancel", onEnd, { once: true });
+    onPointerDown(e);
   };
 
   const baseStyle: React.CSSProperties = {
-    left: `${slideObj.rect.x}px`,
-    top: `${slideObj.rect.y}px`,
+    left: `${x}px`,
+    top: `${y}px`,
     width: `${w}px`,
     height: `${h}px`,
     position: "absolute",
     transformOrigin: "top left",
+    boxSizing: "border-box",
   };
+
+  const handleResize = (newRect: Rect) => {
+    dispatch(changeSlideObjSize, [slideId, slideObj.id, newRect.w, newRect.h]);
+    dispatch(changeSlideObjectPosition, [
+      slideId,
+      slideObj.id,
+      newRect.x,
+      newRect.y,
+    ]);
+  };
+
   return (
     <div
       className={className}
       style={baseStyle}
-      onMouseDown={handleMouseDownWrapper}
+      onPointerDown={handlePointerDownWrapper}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
     >
-      {isSelected && <AllResizePoints />}
-
+      {isSelected && (
+        <AllResizePoints parentRect={slideObj.rect} onResize={handleResize} />
+      )}
       {slideObj.type === "text" ? (
         <div
           className={styles.slideObj__text}

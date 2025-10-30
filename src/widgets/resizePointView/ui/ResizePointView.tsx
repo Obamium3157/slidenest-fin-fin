@@ -5,13 +5,69 @@ import {
 
 import styles from "./ResizePointView.module.css";
 import * as React from "react";
+import type { Rect } from "../../../shared/types/rect/Rect.ts";
+import { useDraggable } from "../../../entities/useDraggable/lib/useDraggable.tsx";
+import { useRef } from "react";
 
 type ResizePointViewProps = {
   type: ResizePointType;
+  parentRect: Rect;
+  onResize: (rect: Rect) => void;
 };
 
 export function ResizePointView(props: ResizePointViewProps) {
-  const { type } = props;
+  const { type, parentRect, onResize } = props;
+
+  const startRef = useRef<{ rect: Rect } | null>(null);
+
+  const { onPointerDown } = useDraggable({
+    onStart: () => {
+      startRef.current = { rect: { ...parentRect } };
+    },
+    onDrag: ({ dx, dy }) => {
+      if (!startRef.current) return;
+
+      const startRect = startRef.current.rect;
+      let newX = startRect.x;
+      let newY = startRect.y;
+      let newW = startRect.w;
+      let newH = startRect.h;
+
+      switch (type) {
+        case "TOP_LEFT": {
+          newX = startRect.x + dx;
+          newY = startRect.y + dy;
+          newW = startRect.w - dx;
+          newH = startRect.h - dy;
+          break;
+        }
+        case "TOP_RIGHT": {
+          newY = startRect.y + dy;
+          newW = startRect.w + dx;
+          newH = startRect.h - dy;
+          break;
+        }
+        case "BOTTOM_RIGHT": {
+          newW = startRect.w + dx;
+          newH = startRect.h + dy;
+          break;
+        }
+        case "BOTTOM_LEFT": {
+          newX = startRect.x + dx;
+          newW = startRect.w - dx;
+          newH = startRect.h + dy;
+          break;
+        }
+      }
+
+      onResize({ x: newX, y: newY, w: newW, h: newH });
+    },
+    onEnd: () => {
+      startRef.current = null;
+    },
+    preventDefault: true,
+    stopPropagation: true,
+  });
 
   const style: React.CSSProperties = {
     width: RESIZE_POINT_SIZE,
@@ -23,6 +79,7 @@ export function ResizePointView(props: ResizePointViewProps) {
         <div
           className={styles.resizePoint}
           style={{ ...style, top: "0%", left: "0%" }}
+          onPointerDown={onPointerDown}
         />
       );
     case "TOP_RIGHT":
@@ -30,6 +87,7 @@ export function ResizePointView(props: ResizePointViewProps) {
         <div
           className={styles.resizePoint}
           style={{ ...style, top: "0%", left: "100%" }}
+          onPointerDown={onPointerDown}
         />
       );
     case "BOTTOM_RIGHT":
@@ -37,6 +95,7 @@ export function ResizePointView(props: ResizePointViewProps) {
         <div
           className={styles.resizePoint}
           style={{ ...style, top: "100%", left: "100%" }}
+          onPointerDown={onPointerDown}
         />
       );
     case "BOTTOM_LEFT":
@@ -44,6 +103,7 @@ export function ResizePointView(props: ResizePointViewProps) {
         <div
           className={styles.resizePoint}
           style={{ ...style, top: "100%", left: "0%" }}
+          onPointerDown={onPointerDown}
         />
       );
     default:
