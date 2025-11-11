@@ -10,7 +10,6 @@ import {
   orderedMapLength,
 } from "../shared/types/orderedMap/OrderedMap.ts";
 import type { Rect } from "../shared/types/rect/Rect.ts";
-import type { Font } from "../shared/types/font/Font.ts";
 import type { SlideText } from "../entities/slideText/model/types.ts";
 import {
   addImage,
@@ -79,31 +78,29 @@ function testChangePresentationTitle() {
 }
 
 function testAddSlide() {
-  const color: Color = { type: "color", color: "#123456" };
-
   const minEditor = minPresentation();
   const { presentation: minP } = minEditor;
-  const resMinEditor = addSlide(minEditor, color.color);
+  const resMinEditor = addSlide(minEditor);
   const { presentation: resMin, select: selMin } = resMinEditor;
   assert(
     orderedMapLength(resMin.slides) === orderedMapLength(minP.slides) + 1,
     "Минимальная: число слайдов должно увеличиться на 1",
   );
   assert(
-    selMin.selectedSlideObjId.length === 0,
+    selMin.selectedSlideObjIds.length === 0,
     "Минимальная: выбор объектов должен быть очищен",
   );
 
   const maxEditor = maxPresentation();
   const { presentation: maxP } = maxEditor;
-  const resMaxEditor = addSlide(maxEditor, color.color);
+  const resMaxEditor = addSlide(maxEditor);
   const { presentation: resMax, select: selMax } = resMaxEditor;
   assert(
     orderedMapLength(resMax.slides) === orderedMapLength(maxP.slides) + 1,
     "Максимальная: число слайдов должно увеличиться на 1",
   );
   assert(
-    selMax.selectedSlideObjId.length === 0,
+    selMax.selectedSlideObjIds.length === 0,
     "Максимальная: выбор объектов должен быть очищен",
   );
 }
@@ -119,7 +116,7 @@ function testRemoveSlide() {
     "Минимальная: слайд должен быть удален",
   );
   assert(
-    selMin.selectedSlideId.every((id) => id !== minSlideId),
+    selMin.selectedSlideIds.every((id) => id !== minSlideId),
     "Минимальная: удаленный слайд не выбран",
   );
 
@@ -133,7 +130,7 @@ function testRemoveSlide() {
     "Максимальная: слайд должен быть удален",
   );
   assert(
-    selMax.selectedSlideId.every((id) => id !== maxSlideId),
+    selMax.selectedSlideIds.every((id) => id !== maxSlideId),
     "Максимальная: удаленный слайд не выбран",
   );
 }
@@ -187,7 +184,7 @@ function testRemoveSlideObj() {
     );
 
     assert(
-      !selMin.selectedSlideObjId.includes(minObjId),
+      !selMin.selectedSlideObjIds.includes(minObjId),
       "Минимальная: удаленный объект не должен быть выбран",
     );
   }
@@ -209,24 +206,19 @@ function testRemoveSlideObj() {
   );
 
   assert(
-    !selMax.selectedSlideObjId.includes(maxObjId),
+    !selMax.selectedSlideObjIds.includes(maxObjId),
     "Максимальная: удаленный объект не должен быть выбран",
   );
 }
 
 function testAddTextAndImage() {
   const rect: Rect = { x: 0, y: 0, w: 100, h: 50 };
-  const font: Font = {
-    type: "font",
-    fontFamily: "Arial",
-    fontSize: "14px",
-  };
 
   const minEditor = minPresentation();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
-    const res = addText(minEditor, "no-slide", { text: "Hello", font, rect });
+    const res = addText(minEditor, "no-slide");
     assertEqual(
       res,
       minEditor,
@@ -234,13 +226,13 @@ function testAddTextAndImage() {
     );
   } else {
     const minSlideId = minOrder[0];
-    const res1 = addText(minEditor, minSlideId, { text: "Hello", font, rect });
+    const res1 = addText(minEditor, minSlideId);
     const { select: s1 } = res1;
-    assert(s1.selectedSlideObjId.length === 1, "Минимальная: текст добавлен");
-    const res2 = addImage(res1, minSlideId, { src: "img.png", rect: rect });
+    assert(s1.selectedSlideObjIds.length === 1, "Минимальная: текст добавлен");
+    const res2 = addImage(res1, minSlideId, "img.png", rect.w, rect.h);
     const { select: s2 } = res2;
     assert(
-      s2.selectedSlideObjId.length === 1,
+      s2.selectedSlideObjIds.length === 1,
       "Минимальная: изображение добавлено",
     );
   }
@@ -248,17 +240,13 @@ function testAddTextAndImage() {
   const maxEditor = maxPresentation();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
-  const res3 = addText(maxEditor, maxSlideId, {
-    text: "Hello Max",
-    font,
-    rect,
-  });
+  const res3 = addText(maxEditor, maxSlideId);
   const { select: s3 } = res3;
-  assert(s3.selectedSlideObjId.length === 1, "Максимальная: текст добавлен");
-  const res4 = addImage(res3, maxSlideId, { src: "img_max.png", rect });
+  assert(s3.selectedSlideObjIds.length === 1, "Максимальная: текст добавлен");
+  const res4 = addImage(res3, maxSlideId, "img_max.png", rect.w, rect.h);
   const { select: s4 } = res4;
   assert(
-    s4.selectedSlideObjId.length === 1,
+    s4.selectedSlideObjIds.length === 1,
     "Максимальная: изображение добавлено",
   );
 }
@@ -729,14 +717,22 @@ function testSlideBackgroundColor() {
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
-    const resMin = changeSlideBackgroundColor(minEditor, "no-slide", color);
+    const resMin = changeSlideBackgroundColor(
+      minEditor,
+      "no-slide",
+      color.color,
+    );
     assert(
       resMin === minEditor,
       "Минимальная: при отсутствии слайдов цвет не меняется",
     );
   } else {
     const minSlideId = minOrder[0];
-    const resMin = changeSlideBackgroundColor(minEditor, minSlideId, color);
+    const resMin = changeSlideBackgroundColor(
+      minEditor,
+      minSlideId,
+      color.color,
+    );
     const bgMin = getOrderedMapElementById(
       resMin.presentation.slides,
       minSlideId,
@@ -747,7 +743,7 @@ function testSlideBackgroundColor() {
   const maxEditor = maxPresentation();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
-  const resMax = changeSlideBackgroundColor(maxEditor, maxSlideId, color);
+  const resMax = changeSlideBackgroundColor(maxEditor, maxSlideId, color.color);
   const bgMax = getOrderedMapElementById(
     resMax.presentation.slides,
     maxSlideId,
@@ -761,15 +757,18 @@ function testSelectFunctions() {
   const objId = "obj1";
   const sel1Editor = selectSlide(minEditor, slideId);
   const sel1 = sel1Editor.select;
-  assert(sel1.selectedSlideId.includes(slideId), "Минимальная: слайд выбран");
+  assert(sel1.selectedSlideIds.includes(slideId), "Минимальная: слайд выбран");
   const sel2Editor = selectSlideObj(sel1Editor, objId);
   const sel2 = sel2Editor.select;
-  assert(sel2.selectedSlideObjId.includes(objId), "Минимальная: объект выбран");
+  assert(
+    sel2.selectedSlideObjIds.includes(objId),
+    "Минимальная: объект выбран",
+  );
   const clearedEditor = clearSelection(minEditor);
   const cleared = clearedEditor.select;
   assert(
-    cleared.selectedSlideId.length === 0 &&
-      cleared.selectedSlideObjId.length === 0,
+    cleared.selectedSlideIds.length === 0 &&
+      cleared.selectedSlideObjIds.length === 0,
     "Минимальная: выбор очищен",
   );
 }

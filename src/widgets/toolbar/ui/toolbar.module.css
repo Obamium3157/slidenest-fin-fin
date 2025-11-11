@@ -1,20 +1,20 @@
 .toolbar {
-    width: inherit;
-    height: 40px;
-    margin-right: 50px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+  width: inherit;
+  height: 40px;
+  margin-right: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 
-    /* background-color: var(--filmstrip-slide-border-color); */
-    background-color: #2222220f;
-    border: none;
-    border-radius: 24px;
-    padding: 1px 10px;
+  /* background-color: var(--filmstrip-slide-border-color); */
+  background-color: #2222220f;
+  border: none;
+  border-radius: 24px;
+  padding: 1px 10px;
 }
 
 .buttonsWrapper {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }

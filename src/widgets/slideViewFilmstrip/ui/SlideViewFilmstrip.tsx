@@ -9,15 +9,30 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
+import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
 
 export type SlideViewFilmstripProps = {
   slide: Slide;
   scaleFactor: number;
   idx: number;
+  preview?: boolean;
+  onDragStart?: () => void;
+  onDrag?: (state: { clientX: number; clientY: number }) => void;
+  onDragEnd?: (moved?: boolean) => void;
+  isDragging?: boolean;
 };
 
 export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
-  const { slide, scaleFactor, idx } = props;
+  const {
+    slide,
+    scaleFactor,
+    idx,
+    onDrag,
+    onDragStart,
+    onDragEnd,
+    preview = false,
+    isDragging = false,
+  } = props;
 
   const onFilmstripSlideClick = (): void => {
     dispatch(selectSlide, [slide.id]);
@@ -37,6 +52,25 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     e.preventDefault();
   };
 
+  const { onPointerDown } = useDraggable({
+    onStart: () => {
+      onDragStart?.();
+    },
+    onDrag: (state) => {
+      onDrag?.({ clientX: state.clientX, clientY: state.clientY });
+    },
+    onEnd: (moved?: boolean) => {
+      onDragEnd?.(moved);
+    },
+    preventDefault: true,
+    stopPropagation: true,
+    movementThreshold: 5,
+  });
+
+  const innerClassName = preview
+    ? `${styles.slideViewInner} ${styles.previewInner}`
+    : styles.slideViewInner;
+
   return (
     <div className={styles.slideViewContainer}>
       <span className={styles.index}>{idx + 1}</span>
@@ -47,13 +81,15 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
           background: slide.backgroundColor.color,
           width: outerWidth,
           height: outerHeight,
+          opacity: isDragging ? 0.6 : 1,
         }}
         onClick={onFilmstripSlideClick}
         onMouseDown={preventSelection}
         onDragStart={preventSelection}
+        onPointerDown={onPointerDown}
       >
-        <div style={innerStyle} className={styles.slideViewInner}>
-          <AllSlideObjects slide={slide} stopPropagation={false} />
+        <div style={innerStyle} className={innerClassName}>
+          <AllSlideObjects slide={slide} stopPropagation={true} />
         </div>
       </div>
     </div>

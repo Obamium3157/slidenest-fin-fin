@@ -1,4 +1,4 @@
 export type Select = {
-  selectedSlideId: string[];
-  selectedSlideObjId: string[];
+  selectedSlideIds: string[];
+  selectedSlideObjIds: string[];
 };

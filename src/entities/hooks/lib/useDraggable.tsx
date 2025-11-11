@@ -9,9 +9,10 @@ export type DraggableArgs = {
     dy: number;
     originalEvent: PointerEvent;
   }) => void;
-  onEnd?: () => void;
+  onEnd?: (moved?: boolean) => void;
   preventDefault?: boolean;
   stopPropagation?: boolean;
+  movementThreshold?: number;
 };
 export function useDraggable(args: DraggableArgs) {
   const {
@@ -20,13 +21,15 @@ export function useDraggable(args: DraggableArgs) {
     onEnd,
     preventDefault = true,
     stopPropagation = false,
+    movementThreshold = 5,
   } = args;
 
   const startRef = useRef<{ x: number; y: number } | null>(null);
-  const isDraggingRef = useRef(false);
+  const isDraggingStartedRef = useRef(false);
   const pointerIdRef = useRef<number | null>(null);
 
   const cleanup = useRef<() => void>(() => {});
+  const movedRef = useRef(false);
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent) => {
@@ -39,23 +42,35 @@ export function useDraggable(args: DraggableArgs) {
 
       startRef.current = { x: startX, y: startY };
       pointerIdRef.current = pe.pointerId;
-      isDraggingRef.current = true;
+      isDraggingStartedRef.current = false;
+      movedRef.current = false;
 
       (e.target as Element).setPointerCapture?.(pe.pointerId);
-
-      onStart?.();
 
       const onMove = (ev: PointerEvent) => {
         if (
           pointerIdRef.current != null &&
           ev.pointerId !== pointerIdRef.current
-        )
+        ) {
           return;
+        }
 
         if (!startRef.current) return;
-
         const dx = ev.clientX - startRef.current.x;
         const dy = ev.clientY - startRef.current.y;
+
+        const distSq = dx * dx + dy * dy;
+        if (!isDraggingStartedRef.current) {
+          if (distSq >= movementThreshold * movementThreshold) {
+            isDraggingStartedRef.current = true;
+            movedRef.current = true;
+            onStart?.();
+          } else {
+            return;
+          }
+        } else {
+          movedRef.current = true;
+        }
 
         onDrag?.({
           clientX: ev.clientX,
@@ -70,18 +85,18 @@ export function useDraggable(args: DraggableArgs) {
         if (
           pointerIdRef.current != null &&
           ev.pointerId !== pointerIdRef.current
-        )
-          return;
-
-        if (!startRef.current) {
-          cleanup.current?.();
+        ) {
           return;
         }
 
-        onEnd?.();
+        const moved = movedRef.current;
 
-        isDraggingRef.current = false;
+        onEnd?.(moved);
+
+        isDraggingStartedRef.current = false;
         startRef.current = null;
+        pointerIdRef.current = null;
+        movedRef.current = false;
 
         (e.target as Element).releasePointerCapture?.(ev.pointerId);
 
@@ -97,15 +112,23 @@ export function useDraggable(args: DraggableArgs) {
         window.removeEventListener("pointerup", onUp);
         window.removeEventListener("pointercancel", onUp);
         pointerIdRef.current = null;
-        isDraggingRef.current = false;
+        isDraggingStartedRef.current = false;
         startRef.current = null;
+        movedRef.current = false;
       };
     },
-    [onStart, onDrag, onEnd, preventDefault, stopPropagation],
+    [
+      onStart,
+      onDrag,
+      onEnd,
+      preventDefault,
+      stopPropagation,
+      movementThreshold,
+    ],
   );
 
   return {
     onPointerDown,
-    isDraggingRef,
+    isDraggingRef: isDraggingStartedRef,
   };
 }

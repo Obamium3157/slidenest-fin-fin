@@ -6,7 +6,9 @@
 }
 
 .index {
-  font: 400 20px SST, sans-serif;
+  font:
+    400 20px SST,
+    sans-serif;
 
   /* color: var(--default-font-color); */
   margin-right: 10px;
@@ -19,6 +21,7 @@
   overflow: hidden;
   position: relative;
   background-clip: padding-box;
+  touch-action: none;
 }
 
 .slideView:hover {
@@ -27,15 +30,29 @@
 }
 
 .slideViewInner {
-    position: relative;
-    width: 1250px;
-    height: 700px;
-    will-change: transform;
+  position: relative;
+  width: 1250px;
+  height: 700px;
+  will-change: transform;
 }
 
-.noSelect, .noSelect * {
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-user-drag: none;
-    touch-action: manipulation;
+.previewInner * {
+  pointer-events: none;
+}
+
+.noSelect,
+.noSelect * {
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: manipulation;
+}
+
+.slideSelectionDivider {
+  border: none;
+  border-top: 1px solid red;
+}
+
+.isDragging {
+  opacity: 0.6;
 }

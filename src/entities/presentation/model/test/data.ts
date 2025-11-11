@@ -19,7 +19,7 @@ export function minPresentation(): Editor {
     title: "minPresentation title",
     slides: newOrderedMap<Slide>(),
   };
-  const select: Select = { selectedSlideId: [], selectedSlideObjId: [] };
+  const select: Select = { selectedSlideIds: [], selectedSlideObjIds: [] };
 
   return { presentation, select };
 }
@@ -215,8 +215,8 @@ export function maxPresentation(): Editor {
   );
 
   const select: Select = {
-    selectedSlideId: [s1Id],
-    selectedSlideObjId: [textId1],
+    selectedSlideIds: [s1Id],
+    selectedSlideObjIds: [textId1],
   };
   // const select: Select = {
   //   selectedSlideId: [s2Id],

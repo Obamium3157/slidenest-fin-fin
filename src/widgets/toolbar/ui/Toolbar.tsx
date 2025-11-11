@@ -9,8 +9,8 @@ import {
   changeSlideBackgroundColor,
   removeSlide,
 } from "../../../entities/editor/lib/editor.ts";
-import { useImagePicker } from "../../../entities/useImagePicker/lib/useImagePicker.tsx";
-import { useColorPicker } from "../../../entities/useColorPicker/lib/useColorPicker.tsx";
+import { useImagePicker } from "../../../entities/hooks/lib/useImagePicker.tsx";
+import { useColorPicker } from "../../../entities/hooks/lib/useColorPicker.tsx";
 import { useRef } from "react";
 
 type ToolbarProps = {
@@ -31,20 +31,20 @@ export function Toolbar(props: ToolbarProps) {
   };
 
   const handleRemoveSlide = (): void => {
-    const id = select.selectedSlideId[0];
+    const id = select.selectedSlideIds[0];
     if (id) {
       dispatch(removeSlide, [id]);
     }
   };
 
   const handleAddText = (): void => {
-    const id = select.selectedSlideId[0];
+    const id = select.selectedSlideIds[0];
     if (!id) return;
     dispatch(addText, [id]);
   };
 
   const handleAddImage = async (): Promise<void> => {
-    const id = select.selectedSlideId[0];
+    const id = select.selectedSlideIds[0];
     if (!id) return;
 
     try {
@@ -58,7 +58,7 @@ export function Toolbar(props: ToolbarProps) {
   };
 
   const handleChangeBackgroundColor = async (): Promise<void> => {
-    const id = select.selectedSlideId[0];
+    const id = select.selectedSlideIds[0];
     if (!id) return;
 
     try {

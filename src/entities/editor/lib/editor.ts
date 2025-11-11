@@ -74,8 +74,8 @@ export function addSlide(editor: Editor): Editor {
   };
 
   const newSelect: Select = {
-    selectedSlideId: [newSlide.id],
-    selectedSlideObjId: [],
+    selectedSlideIds: [newSlide.id],
+    selectedSlideObjIds: [],
   };
 
   return { presentation: newPresentation, select: newSelect };
@@ -103,16 +103,16 @@ export function removeSlide(editor: Editor, targetSlideId: string): Editor {
 
   // select.selectedSlideId = [];
   // select.selectedSlideObjId = [];
-  const newSelect: Select = { selectedSlideId: [], selectedSlideObjId: [] };
+  const newSelect: Select = { selectedSlideIds: [], selectedSlideObjIds: [] };
 
   if (deletedIndex === -1) {
     return { presentation, select };
   } else if (deletedIndex > 0) {
-    newSelect.selectedSlideId = [newSlidesOrder[deletedIndex - 1]];
+    newSelect.selectedSlideIds = [newSlidesOrder[deletedIndex - 1]];
   } else {
     // === 0
     if (newSlidesOrder.length > 0) {
-      newSelect.selectedSlideId = [newSlidesOrder[0]];
+      newSelect.selectedSlideIds = [newSlidesOrder[0]];
     }
   }
 
@@ -162,7 +162,9 @@ export function removeSlideObj(
 
   const newSelect: Select = {
     ...select,
-    selectedSlideObjId: select.selectedSlideObjId.filter((id) => id !== objId),
+    selectedSlideObjIds: select.selectedSlideObjIds.filter(
+      (id) => id !== objId,
+    ),
   };
 
   return {
@@ -206,7 +208,7 @@ export function addText(editor: Editor, slideId: string): Editor {
     slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
   };
 
-  const newSelect: Select = { ...select, selectedSlideObjId: [id] };
+  const newSelect: Select = { ...select, selectedSlideObjIds: [id] };
 
   return { presentation: newPresentation, select: newSelect };
 }
@@ -262,7 +264,7 @@ export function addImage(
     slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
   };
 
-  const newSelect: Select = { ...select, selectedSlideObjId: [id] };
+  const newSelect: Select = { ...select, selectedSlideObjIds: [id] };
 
   return { presentation: newPresentation, select: newSelect };
 }
@@ -551,19 +553,15 @@ export function changeSlideBackgroundColor(
 export function selectSlide(editor: Editor, slideId: string): Editor {
   const { presentation, select } = editor;
 
-  if (select.selectedSlideId.includes(slideId)) {
+  if (select.selectedSlideIds.includes(slideId)) {
     return editor;
   }
 
   return {
     presentation,
-    // select: {
-    //   selectedSlideId: [...select.selectedSlideId, slideId],
-    //   selectedSlideObjId: [],
-    // },
     select: {
-      selectedSlideId: [slideId],
-      selectedSlideObjId: [],
+      selectedSlideIds: [slideId],
+      selectedSlideObjIds: [],
     },
   };
 }
@@ -571,25 +569,25 @@ export function selectSlide(editor: Editor, slideId: string): Editor {
 export function selectSlideObj(editor: Editor, objId: string): Editor {
   const { presentation, select } = editor;
 
-  const isSelected = select.selectedSlideObjId.includes(objId);
+  const isSelected = select.selectedSlideObjIds.includes(objId);
   return {
     presentation,
     select: {
-      selectedSlideId: [],
-      selectedSlideObjId: isSelected
-        ? select.selectedSlideObjId.filter((id) => id !== objId)
-        : [...select.selectedSlideObjId, objId],
+      selectedSlideIds: [],
+      selectedSlideObjIds: isSelected
+        ? select.selectedSlideObjIds.filter((id) => id !== objId)
+        : [...select.selectedSlideObjIds, objId],
     },
   };
 }
 
 export function removeLastSelectedObject(editor: Editor): Editor {
   const { presentation, select } = editor;
-  const selectedSlideObjIds = select.selectedSlideObjId;
+  const selectedSlideObjIds = select.selectedSlideObjIds;
 
   const newSelect: Select = {
     ...select,
-    selectedSlideObjId: selectedSlideObjIds.splice(
+    selectedSlideObjIds: selectedSlideObjIds.splice(
       selectedSlideObjIds.length - 1,
       1,
     ),
@@ -606,8 +604,8 @@ export function clearSelection(editor: Editor): Editor {
   return {
     presentation,
     select: {
-      selectedSlideId: [],
-      selectedSlideObjId: [],
+      selectedSlideIds: [],
+      selectedSlideObjIds: [],
     },
   };
 }

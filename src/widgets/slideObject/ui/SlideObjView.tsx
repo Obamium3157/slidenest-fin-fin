@@ -2,7 +2,7 @@ import type { SlideObj } from "../../../entities/slide/model/types.ts";
 import * as React from "react";
 import styles from "./slideObjView.module.css";
 import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
-import { useDraggable } from "../../../entities/useDraggable/lib/useDraggable.tsx";
+import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import {
   changeFontSize,
@@ -203,8 +203,11 @@ export function SlideObjView(props: SlideObjViewProps) {
       )}
       {slideObj.type === "text" ? (
         <div
-          className={styles.slideObj__text}
+          // TODO: добавить contentEditable
+          // contentEditable={true}
+          className={styles.slideObjText}
           style={getStyleFromFont(slideObj.font)}
+          onChange={() => console.log("AKHDHJASKDSLDHJSALD")}
         >
           {slideObj.text}
         </div>
@@ -212,7 +215,7 @@ export function SlideObjView(props: SlideObjViewProps) {
         <img
           src={slideObj.src}
           alt="изображение на слайде"
-          className={styles.slideObj__image}
+          className={styles.slideObjImage}
         />
       ) : null}
     </div>

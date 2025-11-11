@@ -12,7 +12,7 @@ export function Workspace(props: WorkspaceProps) {
   const { presentation, select } = props.editor;
   const currentSlide = getOrderedMapElementById(
     presentation.slides,
-    select.selectedSlideId[0],
+    select.selectedSlideIds[0],
   );
 
   if (!currentSlide) {

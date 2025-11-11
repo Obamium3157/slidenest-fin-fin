@@ -1,6 +1,36 @@
 .filmstrip {
-    /* width: 30vw; */
-    margin-right: 1%;
-    padding: 0 1%;
-    overflow-y: auto;
+  /* width: 30vw; */
+  margin-right: 1%;
+  padding: 0 1%;
+  overflow-y: auto;
+}
+
+.slideSeparator {
+  border: none;
+  height: 18px;
+  margin: 6px 0;
+  position: relative;
+  background: transparent;
+}
+
+.slideSeparator::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.slideSeparatorActive::after {
+  background: rgb(0 122 255 / 90%);
+  height: 2px;
+  box-shadow: 0 0 6px rgb(0 122 255 / 50%);
+}
+
+.slideSeparator:hover::after {
+  background: rgb(0 0 0 / 6%);
 }
