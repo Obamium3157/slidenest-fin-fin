@@ -7,7 +7,7 @@ import { SlideViewFilmstrip } from "../../slideViewFilmstrip/ui/SlideViewFilmstr
 
 import styles from "./filmstrip.module.css";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { moveSlide } from "../../../entities/editor/lib/editor.ts";
+import { moveSlides } from "../../../entities/editor/lib/editor.ts";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 
 export type FilmstripProps = {
@@ -29,7 +29,7 @@ export function FilmStrip(props: FilmstripProps) {
   const hoverSeparatorIdxRef = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const draggingSlideIdRef = useRef<string | null>(null);
+  const draggingSlideIdsRef = useRef<string[] | null>(null);
 
   const ensureSepCapacity = (n: number) => {
     if (separatorsRef.current.length < n) {
@@ -80,42 +80,63 @@ export function FilmStrip(props: FilmstripProps) {
     [order.length],
   );
 
-  const onDragStart = useCallback((slideId: string) => {
-    draggingSlideIdRef.current = slideId;
-    setIsDragging(true);
-    setHoverSeparatorIdx(null);
-    hoverSeparatorIdxRef.current = null;
-  }, []);
+  const onDragStart = useCallback(
+    (slideId: string) => {
+      const currentSelection = editor.select.selectedSlideIds || [];
+
+      draggingSlideIdsRef.current = currentSelection.includes(slideId)
+        ? currentSelection.slice()
+        : [slideId];
+      setIsDragging(true);
+      setHoverSeparatorIdx(null);
+      hoverSeparatorIdxRef.current = null;
+    },
+    [editor.select.selectedSlideIds],
+  );
 
   const onDrag = useCallback(
     (payload: { clientX: number; clientY: number }) => {
-      if (!draggingSlideIdRef.current && !isDragging) return;
-      const idx = findSeparatorIndexAtPoint(payload.clientX, payload.clientY);
-      if (hoverSeparatorIdxRef.current && hoverSeparatorIdxRef.current < idx) {
-        hoverSeparatorIdxRef.current = idx - 1;
-      } else {
-        hoverSeparatorIdxRef.current = idx;
-      }
-      setHoverSeparatorIdx(idx);
+      if (!draggingSlideIdsRef.current && !isDragging) return;
+
+      hoverSeparatorIdxRef.current = findSeparatorIndexAtPoint(
+        payload.clientX,
+        payload.clientY,
+      );
+
+      setHoverSeparatorIdx(hoverSeparatorIdxRef.current);
     },
     [findSeparatorIndexAtPoint, isDragging],
   );
 
-  const onDragEnd = useCallback((moved?: boolean) => {
-    setIsDragging(false);
+  const onDragEnd = useCallback(
+    (moved?: boolean) => {
+      setIsDragging(false);
 
-    const draggingId = draggingSlideIdRef.current;
-    const targetIdx = hoverSeparatorIdxRef.current;
+      const draggingIds = draggingSlideIdsRef.current;
+      const targetIdxRaw = hoverSeparatorIdxRef.current;
 
-    draggingSlideIdRef.current = null;
-    setHoverSeparatorIdx(null);
+      draggingSlideIdsRef.current = null;
+      setHoverSeparatorIdx(null);
+      hoverSeparatorIdxRef.current = null;
 
-    if (!moved) return;
+      if (!moved) return;
+      if (!draggingIds || targetIdxRaw == null) return;
 
-    if (draggingId != null && targetIdx != null) {
-      dispatch(moveSlide, [draggingId, targetIdx]);
-    }
-  }, []);
+      const countBeforeTarget = draggingIds.reduce((acc, id) => {
+        const pos = order.indexOf(id);
+        return pos !== -1 && pos < targetIdxRaw ? acc + 1 : acc;
+      }, 0);
+
+      const remainingLength = order.length - draggingIds.length;
+      const adjustedTarget = Math.max(
+        0,
+        Math.min(remainingLength, targetIdxRaw - countBeforeTarget),
+      );
+
+      dispatch(moveSlides, [draggingIds, adjustedTarget]);
+    },
+    [order],
+  );
 
   return (
     <div className={styles.filmstrip} ref={containerRef}>

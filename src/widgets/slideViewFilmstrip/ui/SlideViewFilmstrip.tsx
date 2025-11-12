@@ -4,7 +4,7 @@ import styles from "./slideViewFilmstrip.module.css";
 import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import * as React from "react";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { selectSlide } from "../../../entities/editor/lib/editor.ts";
+import { selectSlideRange } from "../../../entities/editor/lib/editor.ts";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
@@ -39,8 +39,8 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     isDragging = false,
   } = props;
 
-  const onFilmstripSlideClick = (): void => {
-    dispatch(selectSlide, [slide.id]);
+  const onFilmstripSlideClick = (e: React.MouseEvent): void => {
+    dispatch(selectSlideRange, [slide.id, e.shiftKey]);
   };
 
   const outerWidth = SLIDE_WIDTH / scaleFactor;
@@ -88,8 +88,9 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
           height: outerHeight,
           opacity: isDragging ? 0.6 : 1,
           border: isSelected ? "2px solid #007bff" : "2px solid #423e3e4c",
+          position: "relative",
         }}
-        onClick={onFilmstripSlideClick}
+        onClick={(e) => onFilmstripSlideClick(e)}
         onMouseDown={preventSelection}
         onDragStart={preventSelection}
         onPointerDown={onPointerDown}

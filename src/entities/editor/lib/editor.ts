@@ -132,6 +132,45 @@ export function moveSlide(
   };
 }
 
+export function moveSlides(
+  editor: Editor,
+  slideIds: string[],
+  toIdx: number,
+): Editor {
+  const { presentation, select } = editor;
+
+  const order = getOrderedMapOrder(presentation.slides);
+  if (slideIds.length === 0) return editor;
+
+  const idSet = new Set(slideIds);
+
+  const movingOrdered: string[] = order.filter((id) => idSet.has(id));
+  if (movingOrdered.length === 0) return editor;
+
+  const remaining = order.filter((id) => !idSet.has(id));
+
+  const clampedIdx = Math.max(0, Math.min(remaining.length, toIdx));
+
+  const newOrder = [
+    ...remaining.slice(0, clampedIdx),
+    ...movingOrdered,
+    ...remaining.slice(clampedIdx),
+  ];
+
+  const newSlidesMap = newOrderedMap(presentation.slides.collection, newOrder);
+
+  return {
+    presentation: {
+      ...presentation,
+      slides: newSlidesMap,
+    },
+    select: {
+      ...select,
+      selectedSlideIds: movingOrdered,
+    },
+  };
+}
+
 export function removeSlideObject(
   editor: Editor,
   slideId: string,
@@ -698,6 +737,59 @@ export function deselectSlideObjects(editor: Editor, objIds: string[]): Editor {
   return {
     presentation,
     select: newSelect,
+  };
+}
+
+export function selectSlideRange(
+  editor: Editor,
+  slideId: string,
+  shift: boolean,
+): Editor {
+  const { presentation, select } = editor;
+
+  const order = getOrderedMapOrder(presentation.slides);
+
+  if (!shift || select.selectedSlideIds.length === 0) {
+    return {
+      presentation,
+      select: {
+        selectedSlideIds: [slideId],
+        selectedSlideObjIds: [],
+      },
+    };
+  }
+
+  const firstSelectedId = select.selectedSlideIds[0];
+  const fromIdx = Math.max(
+    0,
+    findOrderedMapElementIndex(presentation.slides, firstSelectedId),
+  );
+  const toIdx = Math.max(
+    0,
+    findOrderedMapElementIndex(presentation.slides, slideId),
+  );
+
+  if (fromIdx === -1 || toIdx === -1) {
+    return {
+      presentation,
+      select: {
+        selectedSlideIds: [slideId],
+        selectedSlideObjIds: [],
+      },
+    };
+  }
+
+  const start = Math.min(fromIdx, toIdx);
+  const end = Math.max(fromIdx, toIdx);
+
+  const newSelected = order.slice(start, end + 1);
+
+  return {
+    presentation,
+    select: {
+      selectedSlideIds: newSelected,
+      selectedSlideObjIds: [],
+    },
   };
 }
 
