@@ -21,7 +21,7 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className={styles.workspace}>
-      <SlideView slide={currentSlide} />
+      <SlideView editor={props.editor} slide={currentSlide} />
     </div>
   );
 }

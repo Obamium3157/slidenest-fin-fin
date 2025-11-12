@@ -4,19 +4,24 @@ import {
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import { SlideObjView } from "../../slideObject/ui/SlideObjView.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
+import type { Editor } from "../../../entities/editor/model/types.ts";
 
 type SlideObjArrayProps = {
+  editor: Editor;
   slide: Slide;
-  selectedObjectId?: string | null;
-  onSelectObject?: (id: string | null) => void;
+  selectedObjectIds?: string[] | null;
+  onSelectObject?: (id: string, isMultipleSelection: boolean) => void;
+  onDeselectObject?: (id: string) => void;
   stopPropagation: boolean;
 };
 
 export function AllSlideObjects(props: SlideObjArrayProps) {
   const {
+    editor,
     slide,
-    selectedObjectId = null,
+    selectedObjectIds = null,
     onSelectObject,
+    onDeselectObject,
     stopPropagation,
   } = props;
 
@@ -33,12 +38,15 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
         return (
           <SlideObjView
             key={idx}
-            slideId={slide.id}
+            editor={editor}
+            slide={slide}
             slideObj={obj}
-            isSelected={selectedObjectId === obj.id}
-            onSelect={() => onSelectObject?.(obj.id)}
+            isSelected={selectedObjectIds?.includes(obj.id)}
+            onSelect={(isMultipleSelection: boolean) =>
+              onSelectObject?.(obj.id, isMultipleSelection)
+            }
             onDeselect={() => {
-              onSelectObject?.(null);
+              onDeselectObject?.(obj.id);
             }}
             stopPropagation={stopPropagation}
           />

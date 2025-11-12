@@ -101,8 +101,6 @@ export function removeSlide(editor: Editor, targetSlideId: string): Editor {
     slides: newSlides,
   };
 
-  // select.selectedSlideId = [];
-  // select.selectedSlideObjId = [];
   const newSelect: Select = { selectedSlideIds: [], selectedSlideObjIds: [] };
 
   if (deletedIndex === -1) {
@@ -110,7 +108,6 @@ export function removeSlide(editor: Editor, targetSlideId: string): Editor {
   } else if (deletedIndex > 0) {
     newSelect.selectedSlideIds = [newSlidesOrder[deletedIndex - 1]];
   } else {
-    // === 0
     if (newSlidesOrder.length > 0) {
       newSelect.selectedSlideIds = [newSlidesOrder[0]];
     }
@@ -135,7 +132,7 @@ export function moveSlide(
   };
 }
 
-export function removeSlideObj(
+export function removeSlideObject(
   editor: Editor,
   slideId: string,
   objId: string,
@@ -165,6 +162,57 @@ export function removeSlideObj(
     selectedSlideObjIds: select.selectedSlideObjIds.filter(
       (id) => id !== objId,
     ),
+  };
+
+  return {
+    presentation: newPresentation,
+    select: newSelect,
+  };
+}
+
+export function removeSlideObjects(
+  editor: Editor,
+  slideId: string,
+  objIds: string[],
+): Editor {
+  const { presentation, select } = editor;
+
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
+  if (!slide) {
+    return editor;
+  }
+
+  let newSlideObjects = slide.slideObjects;
+  let changed = false;
+
+  for (const objId of objIds) {
+    if (objId in newSlideObjects.collection) {
+      newSlideObjects = getNewOrderedMapWithRemoved(newSlideObjects, objId);
+      changed = true;
+    }
+  }
+
+  if (!changed) {
+    return editor;
+  }
+
+  const newSlide: Slide = {
+    ...slide,
+    slideObjects: newSlideObjects,
+  };
+
+  const newPresentation: Presentation = {
+    ...presentation,
+    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
+  };
+
+  const newSelectedSlideObjIds = select.selectedSlideObjIds.filter(
+    (id) => !objIds.includes(id),
+  );
+
+  const newSelect: Select = {
+    ...select,
+    selectedSlideObjIds: newSelectedSlideObjIds,
   };
 
   return {
@@ -334,6 +382,43 @@ export function changeSlideObjectPosition(
   }));
 }
 
+export function changeMultipleSlideObjectsPosition(
+  editor: Editor,
+  slideId: string,
+  updates: Record<string, { x: number; y: number }>,
+): Editor {
+  const { presentation, select } = editor;
+  const slide = getOrderedMapElementById(presentation.slides, slideId);
+  if (!slide) return editor;
+
+  let newSlideObjects = slide.slideObjects;
+
+  for (const id of Object.keys(updates)) {
+    const obj = getOrderedMapElementById(newSlideObjects, id);
+    if (!obj) continue;
+
+    let newX = updates[id].x;
+    let newY = updates[id].y;
+
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX + obj.rect.w > SLIDE_SIZE.w) newX = SLIDE_SIZE.w - obj.rect.w;
+    if (newY + obj.rect.h > SLIDE_SIZE.h) newY = SLIDE_SIZE.h - obj.rect.h;
+
+    const newRect = { ...obj.rect, x: newX, y: newY };
+    const newObj = { ...obj, rect: newRect };
+    newSlideObjects = getNewOrderedMapWithPushed(newSlideObjects, id, newObj);
+  }
+
+  const newSlide = { ...slide, slideObjects: newSlideObjects };
+  const newPresentation = {
+    ...presentation,
+    slides: getNewOrderedMapWithPushed(presentation.slides, slideId, newSlide),
+  };
+
+  return { presentation: newPresentation, select };
+}
+
 export function changeSlideObjSize(
   editor: Editor,
   slideId: string,
@@ -353,16 +438,14 @@ export function changeSlideObjSize(
     return editor;
   }
 
-  const newRect = { ...obj.rect, w: newW, h: newH };
-
   const MIN_SIZE = 20;
 
-  if (newW <= MIN_SIZE || newW > SLIDE_SIZE.w) {
-    return editor;
-  }
-  if (newH <= MIN_SIZE || newH > SLIDE_SIZE.h) {
-    return editor;
-  }
+  if (newW <= MIN_SIZE) newW = MIN_SIZE;
+  if (newW > SLIDE_SIZE.w) newW = SLIDE_SIZE.w;
+  if (newH <= MIN_SIZE) newH = MIN_SIZE;
+  if (newH > SLIDE_SIZE.h) newH = SLIDE_SIZE.h;
+
+  const newRect = { ...obj.rect, w: newW, h: newH };
 
   return updateSlideObj(editor, slideId, objId, () => ({
     rect: newRect,
@@ -573,7 +656,7 @@ export function selectSlideObj(editor: Editor, objId: string): Editor {
   return {
     presentation,
     select: {
-      selectedSlideIds: [],
+      ...select,
       selectedSlideObjIds: isSelected
         ? select.selectedSlideObjIds.filter((id) => id !== objId)
         : [...select.selectedSlideObjIds, objId],
@@ -581,16 +664,35 @@ export function selectSlideObj(editor: Editor, objId: string): Editor {
   };
 }
 
-export function removeLastSelectedObject(editor: Editor): Editor {
+export function addSlideObjToSelection(editor: Editor, objId: string): Editor {
   const { presentation, select } = editor;
-  const selectedSlideObjIds = select.selectedSlideObjIds;
+
+  return {
+    presentation,
+    select: {
+      ...select,
+      selectedSlideObjIds: [...select.selectedSlideObjIds, objId],
+    },
+  };
+}
+
+export function deselectSlideObjects(editor: Editor, objIds: string[]): Editor {
+  const { presentation, select } = editor;
+
+  if (select.selectedSlideObjIds.length <= 0) return editor;
+
+  const objIdSet = new Set(objIds);
+  const newSelectedSlideObjIds = select.selectedSlideObjIds.filter(
+    (id) => !objIdSet.has(id),
+  );
+
+  if (newSelectedSlideObjIds.length === select.selectedSlideObjIds.length) {
+    return editor;
+  }
 
   const newSelect: Select = {
     ...select,
-    selectedSlideObjIds: selectedSlideObjIds.splice(
-      selectedSlideObjIds.length - 1,
-      1,
-    ),
+    selectedSlideObjIds: newSelectedSlideObjIds,
   };
 
   return {

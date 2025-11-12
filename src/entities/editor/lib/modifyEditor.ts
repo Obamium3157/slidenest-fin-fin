@@ -1,11 +1,11 @@
 import type { Editor } from "../model/types.ts";
-import { maxPresentation } from "../../presentation/model/test/data.ts";
+import { getMaxEditor } from "../../presentation/model/test/data.ts";
 
 type ModifyFn = (editor: Editor, ...args: any[]) => Editor;
 type EditorChangeHandler = () => void;
 
 // let modifyEditor: Editor;
-let modifyEditor: Editor = maxPresentation();
+let modifyEditor: Editor = getMaxEditor();
 let editorChangeHandler: EditorChangeHandler;
 
 export function getEditor() {

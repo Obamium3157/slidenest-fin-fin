@@ -2,21 +2,22 @@ import { useCallback, useRef, useState } from "react";
 import {
   getOrderedMapElementById,
   getOrderedMapOrder,
-  type OrderedMap,
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
-import type { Slide } from "../../../entities/slide/model/types.ts";
 import { SlideViewFilmstrip } from "../../slideViewFilmstrip/ui/SlideViewFilmstrip.tsx";
 
 import styles from "./filmstrip.module.css";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import { moveSlide } from "../../../entities/editor/lib/editor.ts";
+import type { Editor } from "../../../entities/editor/model/types.ts";
 
 export type FilmstripProps = {
-  slides: OrderedMap<Slide>;
+  editor: Editor;
 };
 
 export function FilmStrip(props: FilmstripProps) {
-  const { slides } = props;
+  const { editor } = props;
+  const slides = editor.presentation.slides;
+
   const order = getOrderedMapOrder(slides);
 
   const separatorsRef = useRef<Array<HTMLHRElement | null>>([]);
@@ -90,7 +91,11 @@ export function FilmStrip(props: FilmstripProps) {
     (payload: { clientX: number; clientY: number }) => {
       if (!draggingSlideIdRef.current && !isDragging) return;
       const idx = findSeparatorIndexAtPoint(payload.clientX, payload.clientY);
-      hoverSeparatorIdxRef.current = idx;
+      if (hoverSeparatorIdxRef.current && hoverSeparatorIdxRef.current < idx) {
+        hoverSeparatorIdxRef.current = idx - 1;
+      } else {
+        hoverSeparatorIdxRef.current = idx;
+      }
       setHoverSeparatorIdx(idx);
     },
     [findSeparatorIndexAtPoint, isDragging],
@@ -135,10 +140,12 @@ export function FilmStrip(props: FilmstripProps) {
             />
             <SlideViewFilmstrip
               key={id}
+              editor={editor}
               slide={s}
               scaleFactor={7}
               idx={idx}
               preview={true}
+              isSelected={editor.select.selectedSlideIds.includes(id)}
               onDragStart={() => onDragStart(s.id)}
               onDrag={(p) => onDrag(p)}
               onDragEnd={(moved?: boolean) => onDragEnd(moved)}

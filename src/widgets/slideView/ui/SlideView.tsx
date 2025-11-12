@@ -2,36 +2,36 @@ import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
 
 import styles from "./SlideView.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as React from "react";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { removeSlideObj } from "../../../entities/editor/lib/editor.ts";
+import {
+  addSlideObjToSelection,
+  deselectSlideObjects,
+  removeSlideObjects,
+} from "../../../entities/editor/lib/editor.ts";
+import type { Editor } from "../../../entities/editor/model/types.ts";
 
 type SlideViewProps = {
+  editor: Editor;
   slide: Slide;
 };
 
 export function SlideView(props: SlideViewProps) {
-  const { slide } = props;
-
-  const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const { editor, slide } = props;
+  const { select } = editor;
 
   const slideRef = useRef<HTMLDivElement | null>(null);
 
   const handleBackgroundClick = () => {
-    setSelectedObjectId(null);
+    dispatch(deselectSlideObjects, [select.selectedSlideObjIds]);
   };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setLastKeyPressed] = React.useState<string>("");
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      setLastKeyPressed(e.key);
-
       switch (e.key) {
         case "Backspace": {
-          dispatch(removeSlideObj, [slide.id, selectedObjectId]);
+          dispatch(removeSlideObjects, [slide.id, select.selectedSlideObjIds]);
           break;
         }
         // case "Escape": {
@@ -48,7 +48,7 @@ export function SlideView(props: SlideViewProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [slide.id, selectedObjectId]);
+  }, [slide.id, select.selectedSlideObjIds]);
 
   const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
     e.preventDefault();
@@ -65,10 +65,17 @@ export function SlideView(props: SlideViewProps) {
       onDragStart={preventSelection}
     >
       <AllSlideObjects
+        editor={editor}
         slide={slide}
-        selectedObjectId={selectedObjectId}
-        onSelectObject={(id: string | null) => {
-          setSelectedObjectId(id);
+        selectedObjectIds={select.selectedSlideObjIds}
+        onSelectObject={(id: string, isMultipleSelection: boolean) => {
+          if (!isMultipleSelection) {
+            dispatch(deselectSlideObjects, [select.selectedSlideObjIds]);
+          }
+          dispatch(addSlideObjToSelection, [id]);
+        }}
+        onDeselectObject={(id: string) => {
+          dispatch(deselectSlideObjects, [id]);
         }}
         stopPropagation={true}
       />

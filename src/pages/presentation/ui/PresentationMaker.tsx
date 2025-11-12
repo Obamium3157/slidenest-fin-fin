@@ -33,7 +33,7 @@ export function PresentationMaker(props: PresentationMakerProps) {
         <Toolbar select={editor.select} />
       </div>
       <div className={styles.workField}>
-        <FilmStrip slides={editor.presentation.slides} />
+        <FilmStrip editor={editor} />
         <Workspace editor={editor} />
       </div>
     </div>

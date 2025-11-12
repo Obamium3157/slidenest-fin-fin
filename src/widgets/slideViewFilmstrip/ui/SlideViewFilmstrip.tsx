@@ -10,12 +10,15 @@ import {
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
 import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
+import type { Editor } from "../../../entities/editor/model/types.ts";
 
 export type SlideViewFilmstripProps = {
+  editor: Editor;
   slide: Slide;
   scaleFactor: number;
   idx: number;
   preview?: boolean;
+  isSelected?: boolean;
   onDragStart?: () => void;
   onDrag?: (state: { clientX: number; clientY: number }) => void;
   onDragEnd?: (moved?: boolean) => void;
@@ -24,9 +27,11 @@ export type SlideViewFilmstripProps = {
 
 export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
   const {
+    editor,
     slide,
     scaleFactor,
     idx,
+    isSelected = false,
     onDrag,
     onDragStart,
     onDragEnd,
@@ -82,6 +87,7 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
           width: outerWidth,
           height: outerHeight,
           opacity: isDragging ? 0.6 : 1,
+          border: isSelected ? "2px solid #007bff" : "2px solid #423e3e4c",
         }}
         onClick={onFilmstripSlideClick}
         onMouseDown={preventSelection}
@@ -89,7 +95,11 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
         onPointerDown={onPointerDown}
       >
         <div style={innerStyle} className={innerClassName}>
-          <AllSlideObjects slide={slide} stopPropagation={true} />
+          <AllSlideObjects
+            editor={editor}
+            slide={slide}
+            stopPropagation={true}
+          />
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ import { defaultFont } from "../../../../shared/types/font/test/data.ts";
 import { newTextObj } from "../../../slideText/model/test/data.ts";
 import type { Editor } from "../../../editor/model/types.ts";
 
-export function minPresentation(): Editor {
+export function getMinEditor(): Editor {
   const presentation = {
     id: generateId(),
     title: "minPresentation title",
@@ -24,7 +24,7 @@ export function minPresentation(): Editor {
   return { presentation, select };
 }
 
-export function maxPresentation(): Editor {
+export function getMaxEditor(): Editor {
   const s1Id = generateId();
   const s2Id = generateId();
 
@@ -216,7 +216,12 @@ export function maxPresentation(): Editor {
 
   const select: Select = {
     selectedSlideIds: [s1Id],
-    selectedSlideObjIds: [textId1],
+    selectedSlideObjIds: [
+      arabicText.id,
+      chineseText.id,
+      farsiText.id,
+      koreanText.id,
+    ],
   };
   // const select: Select = {
   //   selectedSlideId: [s2Id],

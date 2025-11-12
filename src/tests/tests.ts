@@ -1,16 +1,16 @@
-import { assert, assertEqual, run, summary } from "../shared/lib/testUtils.ts";
+import { assert, assertEqual, run, summary } from "../shared/lib/testUtils";
 import {
-  maxPresentation,
-  minPresentation,
-} from "../entities/presentation/model/test/data.ts";
-import type { Color } from "../shared/types/color/Color.ts";
+  getMaxEditor,
+  getMinEditor,
+} from "../entities/presentation/model/test/data";
+import type { Color } from "../shared/types/color/Color";
 import {
   getOrderedMapElementById,
   getOrderedMapOrder,
   orderedMapLength,
-} from "../shared/types/orderedMap/OrderedMap.ts";
-import type { Rect } from "../shared/types/rect/Rect.ts";
-import type { SlideText } from "../entities/slideText/model/types.ts";
+} from "../shared/types/orderedMap/OrderedMap";
+import type { Rect } from "../shared/types/rect/Rect";
+import type { SlideText } from "../entities/slideText/model/types";
 import {
   addImage,
   addSlide,
@@ -31,14 +31,14 @@ import {
   changeWordSpacing,
   moveSlide,
   removeSlide,
-  removeSlideObj,
+  removeSlideObject,
   selectSlide,
   selectSlideObj,
   clearSelection,
-} from "../entities/editor/lib/editor.ts";
+} from "../entities/editor/lib/editor";
 
 function testChangePresentationTitle() {
-  const editor = minPresentation();
+  const editor = getMinEditor();
   const minP = editor.presentation;
 
   const newTitle = "New Title";
@@ -59,7 +59,7 @@ function testChangePresentationTitle() {
     "Слишком длинный заголовок презентации",
   );
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const anotherTitle = "AnotherNewTitle";
   const resMax = changePresentationTitle(maxEditor, anotherTitle).presentation;
@@ -78,7 +78,7 @@ function testChangePresentationTitle() {
 }
 
 function testAddSlide() {
-  const minEditor = minPresentation();
+  const minEditor = getMaxEditor();
   const { presentation: minP } = minEditor;
   const resMinEditor = addSlide(minEditor);
   const { presentation: resMin, select: selMin } = resMinEditor;
@@ -91,7 +91,7 @@ function testAddSlide() {
     "Минимальная: выбор объектов должен быть очищен",
   );
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const resMaxEditor = addSlide(maxEditor);
   const { presentation: resMax, select: selMax } = resMaxEditor;
@@ -106,7 +106,7 @@ function testAddSlide() {
 }
 
 function testRemoveSlide() {
-  const minEditor = minPresentation();
+  const minEditor = getMaxEditor();
   const { presentation: minP } = minEditor;
   const minSlideId = getOrderedMapOrder(minP.slides)[0];
   const resMinEditor = removeSlide(minEditor, minSlideId);
@@ -120,7 +120,7 @@ function testRemoveSlide() {
     "Минимальная: удаленный слайд не выбран",
   );
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const resMaxEditor = removeSlide(maxEditor, maxSlideId);
@@ -136,7 +136,7 @@ function testRemoveSlide() {
 }
 
 function testMoveSlide() {
-  const minEditor = minPresentation();
+  const minEditor = getMaxEditor();
   const { presentation: minP } = minEditor;
   const minSlidesOrder = getOrderedMapOrder(minP.slides);
   if (minSlidesOrder.length > 1) {
@@ -148,7 +148,7 @@ function testMoveSlide() {
     );
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlidesOrder = getOrderedMapOrder(maxP.slides);
   const resMaxEditor = moveSlide(
@@ -165,7 +165,7 @@ function testMoveSlide() {
 }
 
 function testRemoveSlideObj() {
-  const minEditor = minPresentation();
+  const minEditor = getMaxEditor();
   const { presentation: minP } = minEditor;
   const minSlideOrder = getOrderedMapOrder(minP.slides);
   if (minSlideOrder.length > 1) {
@@ -173,7 +173,7 @@ function testRemoveSlideObj() {
     const minSlide = getOrderedMapElementById(minP.slides, minSlideId)!;
     const minObjId = getOrderedMapOrder(minSlide.slideObjects)[0];
 
-    const resMinEditor = removeSlideObj(minEditor, minSlideId, minObjId);
+    const resMinEditor = removeSlideObject(minEditor, minSlideId, minObjId);
     const { presentation: resMin, select: selMin } = resMinEditor;
 
     assert(
@@ -189,13 +189,13 @@ function testRemoveSlideObj() {
     );
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const maxSlide = getOrderedMapElementById(maxP.slides, maxSlideId)!;
   const maxObjId = getOrderedMapOrder(maxSlide.slideObjects)[0];
 
-  const resMaxEditor = removeSlideObj(maxEditor, maxSlideId, maxObjId);
+  const resMaxEditor = removeSlideObject(maxEditor, maxSlideId, maxObjId);
   const { presentation: resMax, select: selMax } = resMaxEditor;
 
   assert(
@@ -214,7 +214,7 @@ function testRemoveSlideObj() {
 function testAddTextAndImage() {
   const rect: Rect = { x: 0, y: 0, w: 100, h: 50 };
 
-  const minEditor = minPresentation();
+  const minEditor = getMaxEditor();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
@@ -237,7 +237,7 @@ function testAddTextAndImage() {
     );
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const res3 = addText(maxEditor, maxSlideId);
@@ -252,7 +252,7 @@ function testAddTextAndImage() {
 }
 
 function testChangeSlideObjectPositionAndSize() {
-  const minEditor = minPresentation();
+  const minEditor = getMinEditor();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
@@ -342,7 +342,7 @@ function testChangeSlideObjectPositionAndSize() {
     }
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const maxObjId = getOrderedMapOrder(
@@ -383,7 +383,7 @@ function testChangeSlideObjectPositionAndSize() {
 }
 
 function testTextFontChanges() {
-  const minEditor = minPresentation();
+  const minEditor = getMinEditor();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
@@ -432,7 +432,7 @@ function testTextFontChanges() {
     }
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const maxObjId = getOrderedMapOrder(
@@ -456,7 +456,7 @@ function testTextFontChanges() {
 }
 
 function testIndividualFontChanges() {
-  const minEditor = minPresentation();
+  const minEditor = getMinEditor();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
@@ -592,7 +592,7 @@ function testIndividualFontChanges() {
     }
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const maxObjId = getOrderedMapOrder(
@@ -713,7 +713,7 @@ function testIndividualFontChanges() {
 function testSlideBackgroundColor() {
   const color: Color = { type: "color", color: "#abcdef" };
 
-  const minEditor = minPresentation();
+  const minEditor = getMinEditor();
   const { presentation: minP } = minEditor;
   const minOrder = getOrderedMapOrder(minP.slides);
   if (minOrder.length === 0) {
@@ -740,7 +740,7 @@ function testSlideBackgroundColor() {
     assert(bgMin === color.color, "Минимальная: цвет слайда изменен");
   }
 
-  const maxEditor = maxPresentation();
+  const maxEditor = getMaxEditor();
   const { presentation: maxP } = maxEditor;
   const maxSlideId = getOrderedMapOrder(maxP.slides)[0];
   const resMax = changeSlideBackgroundColor(maxEditor, maxSlideId, color.color);
@@ -752,7 +752,7 @@ function testSlideBackgroundColor() {
 }
 
 function testSelectFunctions() {
-  const minEditor = minPresentation();
+  const minEditor = getMinEditor();
   const slideId = "slide1";
   const objId = "obj1";
   const sel1Editor = selectSlide(minEditor, slideId);
@@ -772,6 +772,10 @@ function testSelectFunctions() {
     "Минимальная: выбор очищен",
   );
 }
+
+// function testRemoveSlideObjects() {
+//   const maxEdiror = maxEditor();
+// }
 
 run("changePresentationTitle (min & max)", testChangePresentationTitle);
 run("addSlide (min & max)", testAddSlide);

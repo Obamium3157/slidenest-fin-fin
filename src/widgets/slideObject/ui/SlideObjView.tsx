@@ -1,84 +1,49 @@
-import type { SlideObj } from "../../../entities/slide/model/types.ts";
+import type { Slide, SlideObj } from "../../../entities/slide/model/types.ts";
 import * as React from "react";
 import styles from "./slideObjView.module.css";
 import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
 import {
+  addSlideObjToSelection,
   changeFontSize,
+  changeMultipleSlideObjectsPosition,
   changeSlideObjectPosition,
   changeSlideObjSize,
+  deselectSlideObjects,
   MIN_FONT_SIZE,
 } from "../../../entities/editor/lib/editor.ts";
 import { useRef } from "react";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
+import { parseFontSize } from "../../../shared/types/font/lib/lib.ts";
+import type { Editor } from "../../../entities/editor/model/types.ts";
+import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
 
 export type SlideObjViewProps = {
-  slideId: string;
+  editor: Editor;
+  slide: Slide;
   slideObj: SlideObj;
   isSelected?: boolean;
-  onSelect?: () => void;
+  onSelect?: (isMultipleSelection: boolean) => void;
   onDeselect?: () => void;
   stopPropagation?: boolean;
 };
 
-function parseFontSize(fontSize: string | undefined): {
-  value: number;
-  unit: string;
-} {
-  if (!fontSize) {
-    return { value: 14, unit: "px" };
-  }
-
-  const str = fontSize.trim();
-  if (str.length === 0) {
-    return { value: 14, unit: "px" };
-  }
-
-  let i = 0;
-  let hasDot = false;
-  let numberPart = "";
-
-  if (str[i] === "-" || str[i] === "+") {
-    numberPart += str[i];
-    i++;
-  }
-
-  for (; i < str.length; i++) {
-    const ch = str[i];
-    if (ch >= "0" && ch <= "9") {
-      numberPart += ch;
-    } else if (ch === "." && !hasDot) {
-      hasDot = true;
-      numberPart += ch;
-    } else {
-      break;
-    }
-  }
-
-  const rest = str.slice(i).trim();
-  const num = Number(numberPart);
-  if (Number.isNaN(num)) {
-    return { value: 14, unit: "px" };
-  }
-
-  const unit = rest.length > 0 ? rest : "px";
-  return { value: num, unit };
-}
-
 export function SlideObjView(props: SlideObjViewProps) {
   const {
-    slideId,
+    editor,
+    slide,
     slideObj,
     isSelected = false,
     onSelect,
-    onDeselect,
     stopPropagation = false,
   } = props;
 
+  const slideId = slide.id;
+
   const [isHovered, setHovered] = React.useState(false);
-  const startRectRef = useRef<Rect | null>(null);
+  const startRectRef = useRef<Record<string, Rect> | null>(null);
   const didDragRef = useRef(false);
 
   const className = `${styles.slideObj} ${
@@ -99,32 +64,69 @@ export function SlideObjView(props: SlideObjViewProps) {
       return;
     }
 
-    onSelect?.();
+    onSelect?.(e.shiftKey);
   };
 
   const { onPointerDown, isDraggingRef } = useDraggable({
     preventDefault: true,
     stopPropagation: stopPropagation,
     onStart: () => {
-      startRectRef.current = slideObj.rect;
+      const currentlySelected = editor.select.selectedSlideObjIds || [];
+
+      const isAlreadySelected = currentlySelected.includes(slideObj.id);
+
+      const idsToCapture = isAlreadySelected
+        ? currentlySelected.slice()
+        : [slideObj.id];
+
+      if (!isAlreadySelected) {
+        if (currentlySelected.length > 0) {
+          dispatch(deselectSlideObjects, [currentlySelected]);
+        }
+        dispatch(addSlideObjToSelection, [slideObj.id]);
+      }
+
+      const map: Record<string, Rect> = {};
+      for (const id of idsToCapture) {
+        const obj = getOrderedMapElementById(slide.slideObjects, id);
+        if (obj) {
+          map[id] = { ...obj.rect };
+        }
+      }
+
+      if (!map[slideObj.id]) {
+        map[slideObj.id] = { ...slideObj.rect };
+      }
+
+      startRectRef.current = map;
     },
     onDrag: ({ dx, dy }) => {
-      const start = startRectRef.current;
-      if (!start) return;
+      const startMap = startRectRef.current;
+      if (!startMap) return;
 
       didDragRef.current = true;
       isDraggingRef.current = true;
 
-      const newX = Math.round(start.x + dx);
-      const newY = Math.round(start.y + dy);
+      const ids = Object.keys(startMap);
 
-      dispatch(changeSlideObjectPosition, [slideId, slideObj.id, newX, newY]);
+      if (ids.length === 1) {
+        const start = startMap[ids[0]];
+        const newX = Math.round(start.x + dx);
+        const newY = Math.round(start.y + dy);
+        dispatch(changeSlideObjectPosition, [slideId, ids[0], newX, newY]);
+      } else {
+        const updates: Record<string, { x: number; y: number }> = {};
+        for (const id of ids) {
+          const start = startMap[id];
+          updates[id] = {
+            x: Math.round(start.x + dx),
+            y: Math.round(start.y + dy),
+          };
+        }
+        dispatch(changeMultipleSlideObjectsPosition, [slideId, updates]);
+      }
     },
     onEnd: () => {
-      if (didDragRef.current) {
-        onDeselect?.();
-      }
-
       setTimeout(() => {
         didDragRef.current = false;
         isDraggingRef.current = false;
@@ -136,8 +138,6 @@ export function SlideObjView(props: SlideObjViewProps) {
 
   const handlePointerDownWrapper = (e: React.PointerEvent) => {
     if (stopPropagation) e.stopPropagation();
-
-    onSelect?.();
 
     onPointerDown(e);
   };
@@ -172,8 +172,10 @@ export function SlideObjView(props: SlideObjViewProps) {
         return;
       }
 
-      const scale =
-        Math.hypot(width, height) / Math.hypot(oldW || 0, oldH || 0);
+      let scale = 1;
+      if (height < oldH) {
+        scale = Math.hypot(width, height) / Math.hypot(oldW || 0, oldH || 0);
+      }
 
       const rawFontSize = textObj.font?.fontSize;
       const { value: oldFontSizeNum, unit } = parseFontSize(rawFontSize);
