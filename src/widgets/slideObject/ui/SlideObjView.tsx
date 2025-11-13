@@ -19,6 +19,10 @@ import type { Rect } from "../../../shared/types/rect/Rect.ts";
 import { parseFontSize } from "../../../shared/types/font/lib/lib.ts";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../../shared/lib/constants/constants.ts";
 
 export type SlideObjViewProps = {
   editor: Editor;
@@ -153,28 +157,59 @@ export function SlideObjView(props: SlideObjViewProps) {
   };
 
   const handleResize = (newRect: Rect) => {
-    dispatch(changeSlideObjSize, [slideId, slideObj.id, newRect.w, newRect.h]);
+    const MIN_SIZE = 20;
+    const SLIDE_W = SLIDE_WIDTH;
+    const SLIDE_H = SLIDE_HEIGHT;
+
+    const startRect = slideObj.rect;
+    const { x, y, w, h } = newRect;
+
+    const clampedW = Math.max(MIN_SIZE, Math.min(Math.round(w), SLIDE_W));
+    const clampedH = Math.max(MIN_SIZE, Math.min(Math.round(h), SLIDE_H));
+
+    let clampedX = Math.round(x);
+    let clampedY = Math.round(y);
+
+    if (clampedW !== w) {
+      if (x > startRect.x) {
+        clampedX = startRect.x + (startRect.w - clampedW);
+      } else {
+        clampedX = Math.min(Math.max(clampedX, 0), SLIDE_W - clampedW);
+      }
+    }
+
+    if (clampedH !== h) {
+      if (y > startRect.y) {
+        clampedY = startRect.y + (startRect.h - clampedH);
+      } else {
+        clampedY = Math.min(Math.max(clampedY, 0), SLIDE_H - clampedH);
+      }
+    }
+
+    clampedX = Math.min(Math.max(clampedX, 0), SLIDE_W - clampedW);
+    clampedY = Math.min(Math.max(clampedY, 0), SLIDE_H - clampedH);
+
+    dispatch(changeSlideObjSize, [slideId, slideObj.id, clampedW, clampedH]);
     dispatch(changeSlideObjectPosition, [
       slideId,
       slideObj.id,
-      newRect.x,
-      newRect.y,
+      clampedX,
+      clampedY,
     ]);
 
     if (slideObj.type === "text") {
       const textObj = slideObj;
-      const oldW = slideObj.rect.w;
-      const oldH = slideObj.rect.h;
-      const width = newRect.w;
-      const height = newRect.h;
+      const oldW = startRect.w;
+      const oldH = startRect.h;
 
-      if ((oldW === 0 && oldH === 0) || (width === 0 && height === 0)) {
+      if ((oldW === 0 && oldH === 0) || (clampedW === 0 && clampedH === 0)) {
         return;
       }
 
       let scale = 1;
-      if (height < oldH) {
-        scale = Math.hypot(width, height) / Math.hypot(oldW || 0, oldH || 0);
+      if (clampedH < oldH) {
+        scale =
+          Math.hypot(clampedW, clampedH) / Math.hypot(oldW || 0, oldH || 0);
       }
 
       const rawFontSize = textObj.font?.fontSize;
