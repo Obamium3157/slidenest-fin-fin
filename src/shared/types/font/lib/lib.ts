@@ -1,3 +1,6 @@
+import type { SlideObj } from "../../../../entities/slide/model/types.ts";
+import type { Rect } from "../../rect/Rect.ts";
+
 export function parseFontSize(fontSize: string | undefined): {
   value: number;
   unit: string;
@@ -40,4 +43,41 @@ export function parseFontSize(fontSize: string | undefined): {
 
   const unit = rest.length > 0 ? rest : "px";
   return { value: num, unit };
+}
+
+export function computeResizedFontSize(
+  startRect: Rect,
+  clampedRect: Rect,
+  textObj: SlideObj,
+  minFontSize: number,
+): string | null {
+  if (textObj.type !== "text") return null;
+
+  const oldW = startRect.w;
+  const oldH = startRect.h;
+  const newW = clampedRect.w;
+  const newH = clampedRect.h;
+
+  if ((oldW === 0 && oldH === 0) || (newW === 0 && newH === 0)) {
+    return null;
+  }
+
+  let scale = 1;
+  if (newH < oldH) {
+    scale = Math.hypot(newW, newH) / Math.hypot(oldW || 0, oldH || 0);
+  }
+
+  const rawFontSize = textObj.font?.fontSize;
+  const { value: oldFontSizeNum, unit } = parseFontSize(rawFontSize);
+
+  if (!oldFontSizeNum || !unit) {
+    return null;
+  }
+
+  const newFontSizeNum = Math.max(
+    Math.round(oldFontSizeNum * scale),
+    minFontSize,
+  );
+
+  return `${newFontSizeNum}${unit}`;
 }

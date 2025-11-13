@@ -59,3 +59,40 @@ export function resizeRect(
 
   return { x: newX, y: newY, w: newW, h: newH };
 }
+
+export function clampResizeRect(
+  startRect: Rect,
+  desiredRect: Rect,
+  slideWidth: number,
+  slideHeight: number,
+): Rect {
+  const MIN_SIZE = 20;
+  const { x, y, w, h } = desiredRect;
+
+  const clampedW = Math.max(MIN_SIZE, Math.min(Math.round(w), slideWidth));
+  const clampedH = Math.max(MIN_SIZE, Math.min(Math.round(h), slideHeight));
+
+  let clampedX = Math.round(x);
+  let clampedY = Math.round(y);
+
+  if (clampedW !== w) {
+    if (x > startRect.x) {
+      clampedX = startRect.x + (startRect.w - clampedW);
+    } else {
+      clampedX = Math.min(Math.max(clampedX, 0), slideWidth - clampedW);
+    }
+  }
+
+  if (clampedH !== h) {
+    if (y > startRect.y) {
+      clampedY = startRect.y + (startRect.h - clampedH);
+    } else {
+      clampedY = Math.min(Math.max(clampedY, 0), slideHeight - clampedH);
+    }
+  }
+
+  clampedX = Math.min(Math.max(clampedX, 0), slideWidth - clampedW);
+  clampedY = Math.min(Math.max(clampedY, 0), slideHeight - clampedH);
+
+  return { x: clampedX, y: clampedY, w: clampedW, h: clampedH };
+}

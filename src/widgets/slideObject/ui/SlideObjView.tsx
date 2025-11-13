@@ -16,13 +16,14 @@ import {
 import { useRef } from "react";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
-import { parseFontSize } from "../../../shared/types/font/lib/lib.ts";
+import { computeResizedFontSize } from "../../../shared/types/font/lib/lib.ts";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
+import { clampResizeRect } from "../../../shared/types/rect/lib/functions.ts";
 
 export type SlideObjViewProps = {
   editor: Editor;
@@ -47,7 +48,7 @@ export function SlideObjView(props: SlideObjViewProps) {
   const slideId = slide.id;
 
   const [isHovered, setHovered] = React.useState(false);
-  const startRectRef = useRef<Record<string, Rect> | null>(null);
+  const startRectMapRef = useRef<Record<string, Rect> | null>(null);
   const didDragRef = useRef(false);
 
   const className = `${styles.slideObj} ${
@@ -102,10 +103,10 @@ export function SlideObjView(props: SlideObjViewProps) {
         map[slideObj.id] = { ...slideObj.rect };
       }
 
-      startRectRef.current = map;
+      startRectMapRef.current = map;
     },
     onDrag: ({ dx, dy }) => {
-      const startMap = startRectRef.current;
+      const startMap = startRectMapRef.current;
       if (!startMap) return;
 
       didDragRef.current = true;
@@ -136,7 +137,7 @@ export function SlideObjView(props: SlideObjViewProps) {
         isDraggingRef.current = false;
       }, 0);
 
-      startRectRef.current = null;
+      startRectMapRef.current = null;
     },
   });
 
@@ -157,70 +158,34 @@ export function SlideObjView(props: SlideObjViewProps) {
   };
 
   const handleResize = (newRect: Rect) => {
-    const MIN_SIZE = 20;
-
     const startRect = slideObj.rect;
-    const { x, y, w, h } = newRect;
 
-    const clampedW = Math.max(MIN_SIZE, Math.min(Math.round(w), SLIDE_WIDTH));
-    const clampedH = Math.max(MIN_SIZE, Math.min(Math.round(h), SLIDE_HEIGHT));
+    const clamped = clampResizeRect(
+      startRect,
+      newRect,
+      SLIDE_WIDTH,
+      SLIDE_HEIGHT,
+    );
 
-    let clampedX = Math.round(x);
-    let clampedY = Math.round(y);
-
-    if (clampedW !== w) {
-      if (x > startRect.x) {
-        clampedX = startRect.x + (startRect.w - clampedW);
-      } else {
-        clampedX = Math.min(Math.max(clampedX, 0), SLIDE_WIDTH - clampedW);
-      }
-    }
-
-    if (clampedH !== h) {
-      if (y > startRect.y) {
-        clampedY = startRect.y + (startRect.h - clampedH);
-      } else {
-        clampedY = Math.min(Math.max(clampedY, 0), SLIDE_HEIGHT - clampedH);
-      }
-    }
-
-    clampedX = Math.min(Math.max(clampedX, 0), SLIDE_WIDTH - clampedW);
-    clampedY = Math.min(Math.max(clampedY, 0), SLIDE_HEIGHT - clampedH);
-
-    dispatch(changeSlideObjSize, [slideId, slideObj.id, clampedW, clampedH]);
+    dispatch(changeSlideObjSize, [slideId, slideObj.id, clamped.w, clamped.h]);
     dispatch(changeSlideObjectPosition, [
       slideId,
       slideObj.id,
-      clampedX,
-      clampedY,
+      clamped.x,
+      clamped.y,
     ]);
 
     if (slideObj.type === "text") {
-      const textObj = slideObj;
-      const oldW = startRect.w;
-      const oldH = startRect.h;
-
-      if ((oldW === 0 && oldH === 0) || (clampedW === 0 && clampedH === 0)) {
-        return;
-      }
-
-      let scale = 1;
-      if (clampedH < oldH) {
-        scale =
-          Math.hypot(clampedW, clampedH) / Math.hypot(oldW || 0, oldH || 0);
-      }
-
-      const rawFontSize = textObj.font?.fontSize;
-      const { value: oldFontSizeNum, unit } = parseFontSize(rawFontSize);
-
-      const newFontSizeNum = Math.max(
-        Math.round(oldFontSizeNum * scale),
+      const newFontSizeStr = computeResizedFontSize(
+        startRect,
+        clamped,
+        slideObj,
         MIN_FONT_SIZE,
       );
 
-      const newFontSizeStr = `${newFontSizeNum}${unit}`;
-
-      dispatch(changeFontSize, [slideId, slideObj.id, newFontSizeStr]);
+      if (newFontSizeStr) {
+        dispatch(changeFontSize, [slideId, slideObj.id, newFontSizeStr]);
+      }
     }
   };
 
@@ -238,8 +203,6 @@ export function SlideObjView(props: SlideObjViewProps) {
       )}
       {slideObj.type === "text" ? (
         <div
-          // TODO: добавить contentEditable
-          // contentEditable={true}
           className={styles.slideObjText}
           style={getStyleFromFont(slideObj.font)}
           onChange={() => console.log("AKHDHJASKDSLDHJSALD")}

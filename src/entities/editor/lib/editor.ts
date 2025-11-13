@@ -23,6 +23,7 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
+import { clampResizeRect } from "../../../shared/types/rect/lib/functions.ts";
 
 const MAX_PRESENTATION_TITLE_SIZE: number = 70;
 export const PRESENTATION_TITLE_PLACEHOLDER: string = "Название презентации";
@@ -475,14 +476,22 @@ export function changeSlideObjSize(
     return editor;
   }
 
-  const MIN_SIZE = 20;
+  const startRect: Rect = obj.rect;
+  const desiredRect: Rect = {
+    x: startRect.x,
+    y: startRect.y,
+    w: newW,
+    h: newH,
+  };
 
-  if (newW <= MIN_SIZE) newW = MIN_SIZE;
-  if (newW > SLIDE_SIZE.w) newW = SLIDE_SIZE.w;
-  if (newH <= MIN_SIZE) newH = MIN_SIZE;
-  if (newH > SLIDE_SIZE.h) newH = SLIDE_SIZE.h;
+  const clamped = clampResizeRect(
+    startRect,
+    desiredRect,
+    SLIDE_SIZE.w,
+    SLIDE_SIZE.h,
+  );
 
-  const newRect = { ...obj.rect, w: newW, h: newH };
+  const newRect = { ...obj.rect, w: clamped.w, h: clamped.h };
 
   return updateSlideObj(editor, slideId, objId, () => ({
     rect: newRect,
