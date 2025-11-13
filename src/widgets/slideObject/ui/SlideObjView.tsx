@@ -158,14 +158,12 @@ export function SlideObjView(props: SlideObjViewProps) {
 
   const handleResize = (newRect: Rect) => {
     const MIN_SIZE = 20;
-    const SLIDE_W = SLIDE_WIDTH;
-    const SLIDE_H = SLIDE_HEIGHT;
 
     const startRect = slideObj.rect;
     const { x, y, w, h } = newRect;
 
-    const clampedW = Math.max(MIN_SIZE, Math.min(Math.round(w), SLIDE_W));
-    const clampedH = Math.max(MIN_SIZE, Math.min(Math.round(h), SLIDE_H));
+    const clampedW = Math.max(MIN_SIZE, Math.min(Math.round(w), SLIDE_WIDTH));
+    const clampedH = Math.max(MIN_SIZE, Math.min(Math.round(h), SLIDE_HEIGHT));
 
     let clampedX = Math.round(x);
     let clampedY = Math.round(y);
@@ -174,7 +172,7 @@ export function SlideObjView(props: SlideObjViewProps) {
       if (x > startRect.x) {
         clampedX = startRect.x + (startRect.w - clampedW);
       } else {
-        clampedX = Math.min(Math.max(clampedX, 0), SLIDE_W - clampedW);
+        clampedX = Math.min(Math.max(clampedX, 0), SLIDE_WIDTH - clampedW);
       }
     }
 
@@ -182,12 +180,12 @@ export function SlideObjView(props: SlideObjViewProps) {
       if (y > startRect.y) {
         clampedY = startRect.y + (startRect.h - clampedH);
       } else {
-        clampedY = Math.min(Math.max(clampedY, 0), SLIDE_H - clampedH);
+        clampedY = Math.min(Math.max(clampedY, 0), SLIDE_HEIGHT - clampedH);
       }
     }
 
-    clampedX = Math.min(Math.max(clampedX, 0), SLIDE_W - clampedW);
-    clampedY = Math.min(Math.max(clampedY, 0), SLIDE_H - clampedH);
+    clampedX = Math.min(Math.max(clampedX, 0), SLIDE_WIDTH - clampedW);
+    clampedY = Math.min(Math.max(clampedY, 0), SLIDE_HEIGHT - clampedH);
 
     dispatch(changeSlideObjSize, [slideId, slideObj.id, clampedW, clampedH]);
     dispatch(changeSlideObjectPosition, [

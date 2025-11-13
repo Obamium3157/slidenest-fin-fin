@@ -7,7 +7,7 @@ import { SlideViewFilmstrip } from "../../slideViewFilmstrip/ui/SlideViewFilmstr
 
 import styles from "./filmstrip.module.css";
 import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { moveSlides } from "../../../entities/editor/lib/editor.ts";
+import { moveMultipleSlides } from "../../../entities/editor/lib/editor.ts";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 
 export type FilmstripProps = {
@@ -133,7 +133,7 @@ export function FilmStrip(props: FilmstripProps) {
         Math.min(remainingLength, targetIdxRaw - countBeforeTarget),
       );
 
-      dispatch(moveSlides, [draggingIds, adjustedTarget]);
+      dispatch(moveMultipleSlides, [draggingIds, adjustedTarget]);
     },
     [order],
   );

@@ -132,7 +132,7 @@ export function moveSlide(
   };
 }
 
-export function moveSlides(
+export function moveMultipleSlides(
   editor: Editor,
   slideIds: string[],
   toIdx: number,
@@ -142,12 +142,10 @@ export function moveSlides(
   const order = getOrderedMapOrder(presentation.slides);
   if (slideIds.length === 0) return editor;
 
-  const idSet = new Set(slideIds);
-
-  const movingOrdered: string[] = order.filter((id) => idSet.has(id));
+  const movingOrdered: string[] = order.filter((id) => slideIds.includes(id));
   if (movingOrdered.length === 0) return editor;
 
-  const remaining = order.filter((id) => !idSet.has(id));
+  const remaining = order.filter((id) => !slideIds.includes(id));
 
   const clampedIdx = Math.max(0, Math.min(remaining.length, toIdx));
 
@@ -720,9 +718,8 @@ export function deselectSlideObjects(editor: Editor, objIds: string[]): Editor {
 
   if (select.selectedSlideObjIds.length <= 0) return editor;
 
-  const objIdSet = new Set(objIds);
   const newSelectedSlideObjIds = select.selectedSlideObjIds.filter(
-    (id) => !objIdSet.has(id),
+    (id) => !objIds.includes(id),
   );
 
   if (newSelectedSlideObjIds.length === select.selectedSlideObjIds.length) {
