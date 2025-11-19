@@ -1,7 +1,9 @@
 .slideObj {
   position: absolute;
+  transform-origin: top left;
   border: 2px solid #22222230;
   box-sizing: border-box;
+
 }
 
 .slideObj__hovered {

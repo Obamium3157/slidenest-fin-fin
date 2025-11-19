@@ -12,7 +12,6 @@ type SlideObjArrayProps = {
   selectedObjectIds?: string[] | null;
   onSelectObject?: (id: string, isMultipleSelection: boolean) => void;
   onDeselectObject?: (id: string) => void;
-  stopPropagation: boolean;
 };
 
 export function AllSlideObjects(props: SlideObjArrayProps) {
@@ -22,7 +21,6 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
     selectedObjectIds = null,
     onSelectObject,
     onDeselectObject,
-    stopPropagation,
   } = props;
 
   const currentSlideObjects = slide.slideObjects;
@@ -48,7 +46,6 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
             onDeselect={() => {
               onDeselectObject?.(obj.id);
             }}
-            stopPropagation={stopPropagation}
           />
         );
       })}

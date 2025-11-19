@@ -6,9 +6,7 @@ import {
 import styles from "./ResizePointView.module.css";
 import * as React from "react";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
-import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
-import { useRef } from "react";
-import { resizeRect } from "../../../shared/types/rect/lib/functions.ts";
+import { useResizePointDrag } from "../../../entities/hooks/lib/useResizePointDrag.tsx";
 
 type ResizePointViewProps = {
   type: ResizePointType;
@@ -19,26 +17,7 @@ type ResizePointViewProps = {
 export function ResizePointView(props: ResizePointViewProps) {
   const { type, parentRect, onResize } = props;
 
-  const startRef = useRef<{ rect: Rect } | null>(null);
-
-  const { onPointerDown } = useDraggable({
-    onStart: () => {
-      startRef.current = { rect: { ...parentRect } };
-    },
-    onDrag: ({ dx, dy }) => {
-      if (!startRef.current) return;
-
-      const startRect = startRef.current.rect;
-      const newRect = resizeRect(startRect, type, dx, dy);
-
-      onResize(newRect);
-    },
-    onEnd: () => {
-      startRef.current = null;
-    },
-    preventDefault: true,
-    stopPropagation: true,
-  });
+  const { onPointerDown } = useResizePointDrag({ type, parentRect, onResize });
 
   const style: React.CSSProperties = {
     width: RESIZE_POINT_SIZE,

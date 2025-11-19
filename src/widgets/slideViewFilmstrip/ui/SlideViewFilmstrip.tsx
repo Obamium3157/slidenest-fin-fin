@@ -9,8 +9,8 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
-import { useDraggable } from "../../../entities/hooks/lib/useDraggable.tsx";
 import type { Editor } from "../../../entities/editor/model/types.ts";
+import { useSlideViewFilmstripDragAndDrop } from "../../../entities/hooks/lib/useSlideViewFilmstripDragAndDrop.tsx";
 
 export type SlideViewFilmstripProps = {
   editor: Editor;
@@ -39,8 +39,18 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     isDragging = false,
   } = props;
 
+  const { onPointerDown } = useSlideViewFilmstripDragAndDrop({
+    onDrag,
+    onDragStart,
+    onDragEnd,
+  });
+
   const onFilmstripSlideClick = (e: React.MouseEvent): void => {
     dispatch(selectSlideRange, [slide.id, e.shiftKey]);
+  };
+
+  const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
+    e.preventDefault();
   };
 
   const outerWidth = SLIDE_WIDTH / scaleFactor;
@@ -52,25 +62,6 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     transform: `scale(${1 / scaleFactor})`,
     transformOrigin: "top left",
   };
-
-  const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const { onPointerDown } = useDraggable({
-    onStart: () => {
-      onDragStart?.();
-    },
-    onDrag: (state) => {
-      onDrag?.({ clientX: state.clientX, clientY: state.clientY });
-    },
-    onEnd: (moved?: boolean) => {
-      onDragEnd?.(moved);
-    },
-    preventDefault: true,
-    stopPropagation: true,
-    movementThreshold: 5,
-  });
 
   const innerClassName = preview
     ? `${styles.slideViewInner} ${styles.previewInner}`
@@ -96,11 +87,7 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
         onPointerDown={onPointerDown}
       >
         <div style={innerStyle} className={innerClassName}>
-          <AllSlideObjects
-            editor={editor}
-            slide={slide}
-            stopPropagation={true}
-          />
+          <AllSlideObjects editor={editor} slide={slide} />
         </div>
       </div>
     </div>

@@ -23,7 +23,10 @@ export function SlideView(props: SlideViewProps) {
 
   const slideRef = useRef<HTMLDivElement | null>(null);
 
-  const handleBackgroundClick = () => {
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.defaultPrevented) {
+      return;
+    }
     dispatch(deselectSlideObjects, [select.selectedSlideObjIds]);
   };
 
@@ -34,10 +37,6 @@ export function SlideView(props: SlideViewProps) {
           dispatch(removeSlideObjects, [slide.id, select.selectedSlideObjIds]);
           break;
         }
-        // case "Escape": {
-        //   setSelectedObjectId(null);
-        //   break;
-        // }
         default: {
           break;
         }
@@ -77,7 +76,6 @@ export function SlideView(props: SlideViewProps) {
         onDeselectObject={(id: string) => {
           dispatch(deselectSlideObjects, [id]);
         }}
-        stopPropagation={true}
       />
     </div>
   );
