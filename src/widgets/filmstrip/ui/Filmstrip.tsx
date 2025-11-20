@@ -27,7 +27,6 @@ export function FilmStrip() {
     separatorsRef,
     isDragging,
     hoverSeparatorIdx,
-    ensureSepCapacity,
     onDragStart,
     onDrag,
     onDragEnd,
@@ -38,8 +37,6 @@ export function FilmStrip() {
       {order.map((id, idx) => {
         const s = getOrderedMapElementById(slides, id);
         if (!s) return null;
-
-        ensureSepCapacity(order.length + 1);
 
         const isThisHover = hoverSeparatorIdx === idx;
 

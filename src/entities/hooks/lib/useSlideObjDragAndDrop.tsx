@@ -23,7 +23,6 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
   const select = useAppSelector((state) => state.selection);
 
   const {
-    changeSlideObjectPosition,
     changeMultipleSlideObjectsPosition,
     deselectSlideObjects,
     addSlideObjToSelection,
@@ -62,32 +61,19 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
 
       const ids = Object.keys(startMap);
 
-      if (ids.length === 1) {
-        const start = startMap[ids[0]];
-        const newX = Math.round(start.x + dx);
-        const newY = Math.round(start.y + dy);
-
-        changeSlideObjectPosition({
-          slideId,
-          objId: ids[0],
-          newX,
-          newY,
-        });
-      } else {
-        const updates: Record<string, { x: number; y: number }> = {};
-        for (const id of ids) {
-          const start = startMap[id];
-          updates[id] = {
-            x: Math.round(start.x + dx),
-            y: Math.round(start.y + dy),
-          };
-        }
-
-        changeMultipleSlideObjectsPosition({
-          slideId,
-          updates,
-        });
+      const updates: Record<string, { x: number; y: number }> = {};
+      for (const id of ids) {
+        const start = startMap[id];
+        updates[id] = {
+          x: Math.round(start.x + dx),
+          y: Math.round(start.y + dy),
+        };
       }
+
+      changeMultipleSlideObjectsPosition({
+        slideId,
+        updates,
+      });
     },
     onEnd: () => {
       setTimeout(() => {

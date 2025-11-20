@@ -23,12 +23,6 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
   const select = useAppSelector((state) => state.selection);
   const { moveMultipleSlides } = useAppActions();
 
-  const ensureSepCapacity = (n: number) => {
-    if (separatorsRef.current.length < n) {
-      separatorsRef.current.length = n;
-    }
-  };
-
   const findSeparatorIndexAtPoint = useCallback(
     (clientX: number, clientY: number) => {
       const seps = separatorsRef.current;
@@ -138,7 +132,6 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
     separatorsRef,
     isDragging,
     hoverSeparatorIdx,
-    ensureSepCapacity,
     onDragStart,
     onDrag,
     onDragEnd,

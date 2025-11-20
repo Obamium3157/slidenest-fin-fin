@@ -4,6 +4,8 @@ import styles from "./slideViewFilmstrip.module.css";
 import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import * as React from "react";
 import {
+  DEFAULT_SLIDE_FILMSTRIP_SEPARATOR_BORDER,
+  SELECTED_SLIDE_FILMSTRIP_SEPARATOR_BORDER,
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
@@ -86,7 +88,9 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
           width: outerWidth,
           height: outerHeight,
           opacity: isDragging ? 0.6 : 1,
-          border: isSelected ? "2px solid #007bff" : "2px solid #423e3e4c",
+          border: isSelected
+            ? DEFAULT_SLIDE_FILMSTRIP_SEPARATOR_BORDER
+            : SELECTED_SLIDE_FILMSTRIP_SEPARATOR_BORDER,
           position: "relative",
         }}
         onClick={(e) => onFilmstripSlideClick(e)}
