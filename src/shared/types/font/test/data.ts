@@ -7,11 +7,11 @@ export function defaultFont(): Font {
     fontFamily: "SST",
     fontSize: "30px",
     fontWeight: "normal",
-    fontStyle: new Set([]),
+    fontStyle: "normal",
     letterSpacing: "0px",
     wordSpacing: "5px",
     color: makeColor("#222222"),
-    textDecoration: new Set(),
+    textDecoration: "none",
     textTransform: "none",
   };
 }

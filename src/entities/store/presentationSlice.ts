@@ -12,7 +12,9 @@ import {
 import { generateId } from "../../shared/lib/generateId.ts";
 import { defaultTextObjectParameters } from "../slideText/model/test/data.ts";
 import {
+  MAX_PRESENTATION_TITLE_SIZE,
   SLIDE_HEIGHT,
+  SLIDE_SIZE,
   SLIDE_WIDTH,
 } from "../../shared/lib/constants/constants.ts";
 import { clampResizeRect } from "../../shared/types/rect/lib/functions.ts";
@@ -23,18 +25,9 @@ import type { SlideText } from "../slideText/model/types.ts";
 import type { SlideImage } from "../slideImage/model/types.ts";
 import type { Font } from "../../shared/types/font/Font.ts";
 import type { Color } from "../../shared/types/color/Color.ts";
+import { getMaxEditor } from "../presentation/model/test/data.ts";
 
-const MAX_PRESENTATION_TITLE_SIZE = 70;
-const SLIDE_SIZE = {
-  w: 1250,
-  h: 700,
-};
-
-const initialState: Presentation = {
-  id: "",
-  title: "",
-  slides: { collection: {}, order: [] },
-};
+const initialState: Presentation = getMaxEditor().presentation;
 
 const presentationSlice = createSlice({
   name: "presentation",
