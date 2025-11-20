@@ -4,15 +4,12 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
-import { dispatch } from "../../editor/lib/modifyEditor.ts";
 import {
-  changeFontSize,
-  changeSlideObjectPosition,
-  changeSlideObjSize,
+  computeResizedFontSize,
   MIN_FONT_SIZE,
-} from "../../editor/lib/editor.ts";
-import { computeResizedFontSize } from "../../../shared/types/font/lib/lib.ts";
+} from "../../../shared/types/font/lib/lib.ts";
 import type { SlideObj } from "../../slide/model/types.ts";
+import { useAppActions } from "../../store/actions.ts";
 
 type SlideObjResizeArgs = {
   slideId: string;
@@ -21,6 +18,9 @@ type SlideObjResizeArgs = {
 
 export function useSlideObjResize(args: SlideObjResizeArgs) {
   const { slideId, slideObj } = args;
+
+  const { changeSlideObjSize, changeSlideObjectPosition, changeFontSize } =
+    useAppActions();
 
   const handleResize = (newRect: Rect) => {
     const startRect = slideObj.rect;
@@ -32,13 +32,18 @@ export function useSlideObjResize(args: SlideObjResizeArgs) {
       SLIDE_HEIGHT,
     );
 
-    dispatch(changeSlideObjSize, [slideId, slideObj.id, clamped.w, clamped.h]);
-    dispatch(changeSlideObjectPosition, [
+    changeSlideObjSize({
       slideId,
-      slideObj.id,
-      clamped.x,
-      clamped.y,
-    ]);
+      objId: slideObj.id,
+      newW: clamped.w,
+      newH: clamped.h,
+    });
+    changeSlideObjectPosition({
+      slideId,
+      objId: slideObj.id,
+      newX: clamped.x,
+      newY: clamped.y,
+    });
 
     if (slideObj.type === "text") {
       const newFontSizeStr = computeResizedFontSize(
@@ -49,7 +54,11 @@ export function useSlideObjResize(args: SlideObjResizeArgs) {
       );
 
       if (newFontSizeStr) {
-        dispatch(changeFontSize, [slideId, slideObj.id, newFontSizeStr]);
+        changeFontSize({
+          slideId,
+          objId: slideObj.id,
+          newSize: newFontSizeStr,
+        });
       }
     }
   };

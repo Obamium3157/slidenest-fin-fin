@@ -4,10 +4,8 @@ import {
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import { SlideObjView } from "../../slideObject/ui/SlideObjView.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 
 type SlideObjArrayProps = {
-  editor: Editor;
   slide: Slide;
   selectedObjectIds?: string[] | null;
   onSelectObject?: (id: string, isMultipleSelection: boolean) => void;
@@ -16,7 +14,6 @@ type SlideObjArrayProps = {
 
 export function AllSlideObjects(props: SlideObjArrayProps) {
   const {
-    editor,
     slide,
     selectedObjectIds = null,
     onSelectObject,
@@ -36,7 +33,6 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
         return (
           <SlideObjView
             key={idx}
-            editor={editor}
             slide={slide}
             slideObj={obj}
             isSelected={selectedObjectIds?.includes(obj.id)}

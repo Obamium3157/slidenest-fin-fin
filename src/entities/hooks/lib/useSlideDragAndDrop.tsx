@@ -1,15 +1,13 @@
 import { useCallback, useRef, useState } from "react";
-import type { Editor } from "../../editor/model/types.ts";
-import { dispatch } from "../../editor/lib/modifyEditor.ts";
-import { moveMultipleSlides } from "../../editor/lib/editor.ts";
+import { useAppSelector } from "../../store/hooks.ts";
+import { useAppActions } from "../../store/actions.ts";
 
 type SlideDragAndDropArgs = {
-  editor: Editor;
   order: string[];
 };
 
 export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
-  const { editor, order } = args;
+  const { order } = args;
 
   const separatorsRef = useRef<Array<HTMLHRElement | null>>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -21,6 +19,9 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const draggingSlideIdsRef = useRef<string[] | null>(null);
+
+  const select = useAppSelector((state) => state.selection);
+  const { moveMultipleSlides } = useAppActions();
 
   const ensureSepCapacity = (n: number) => {
     if (separatorsRef.current.length < n) {
@@ -73,7 +74,7 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
 
   const onDragStart = useCallback(
     (slideId: string) => {
-      const currentSelection = editor.select.selectedSlideIds || [];
+      const currentSelection = select.selectedSlideIds || [];
 
       draggingSlideIdsRef.current = currentSelection.includes(slideId)
         ? currentSelection.slice()
@@ -82,7 +83,7 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
       setHoverSeparatorIdx(null);
       hoverSeparatorIdxRef.current = null;
     },
-    [editor.select.selectedSlideIds],
+    [select.selectedSlideIds],
   );
 
   const onDrag = useCallback(
@@ -124,9 +125,12 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
         Math.min(remainingLength, targetIdxRaw - countBeforeTarget),
       );
 
-      dispatch(moveMultipleSlides, [draggingIds, adjustedTarget]);
+      moveMultipleSlides({
+        slideIds: draggingIds,
+        toIdx: adjustedTarget,
+      });
     },
-    [order],
+    [order, moveMultipleSlides],
   );
 
   return {

@@ -1,20 +1,13 @@
 import { useDraggable } from "./useDraggable.tsx";
-import { dispatch } from "../../editor/lib/modifyEditor.ts";
-import {
-  addSlideObjToSelection,
-  changeMultipleSlideObjectsPosition,
-  changeSlideObjectPosition,
-  deselectSlideObjects,
-} from "../../editor/lib/editor.ts";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
 import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
-import type { Editor } from "../../editor/model/types.ts";
 import type { Slide, SlideObj } from "../../slide/model/types.ts";
 import { useRef } from "react";
 import * as React from "react";
+import { useAppSelector } from "../../store/hooks.ts";
+import { useAppActions } from "../../store/actions.ts";
 
 type SlideDragAndDropArgs = {
-  editor: Editor;
   slide: Slide;
   slideId: string;
   slideObj: SlideObj;
@@ -22,15 +15,24 @@ type SlideDragAndDropArgs = {
 };
 
 export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
-  const { editor, slide, slideId, slideObj, onSelect } = args;
+  const { slide, slideId, slideObj, onSelect } = args;
 
   const startRectMapRef = useRef<Record<string, Rect> | null>(null);
   const didDragRef = useRef(false);
 
+  const select = useAppSelector((state) => state.selection);
+
+  const {
+    changeSlideObjectPosition,
+    changeMultipleSlideObjectsPosition,
+    deselectSlideObjects,
+    addSlideObjToSelection,
+  } = useAppActions();
+
   const { onPointerDown: draggablePointerDown, isDraggingRef } = useDraggable({
     preventDefault: true,
     onStart: () => {
-      const currentlySelected = editor.select.selectedSlideObjIds || [];
+      const currentlySelected = select.selectedSlideObjIds || [];
       const isAlreadySelected = currentlySelected.includes(slideObj.id);
 
       const idsToCapture = isAlreadySelected
@@ -64,7 +66,13 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
         const start = startMap[ids[0]];
         const newX = Math.round(start.x + dx);
         const newY = Math.round(start.y + dy);
-        dispatch(changeSlideObjectPosition, [slideId, ids[0], newX, newY]);
+
+        changeSlideObjectPosition({
+          slideId,
+          objId: ids[0],
+          newX,
+          newY,
+        });
       } else {
         const updates: Record<string, { x: number; y: number }> = {};
         for (const id of ids) {
@@ -74,7 +82,11 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
             y: Math.round(start.y + dy),
           };
         }
-        dispatch(changeMultipleSlideObjectsPosition, [slideId, updates]);
+
+        changeMultipleSlideObjectsPosition({
+          slideId,
+          updates,
+        });
       }
     },
     onEnd: () => {
@@ -88,16 +100,20 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
   });
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    const currentlySelected = editor.select.selectedSlideObjIds || [];
+    const currentlySelected = select.selectedSlideObjIds || [];
     const isAlreadySelected = currentlySelected.includes(slideObj.id);
 
     if (!isAlreadySelected) {
       if (!e.shiftKey) {
         if (currentlySelected.length > 0) {
-          dispatch(deselectSlideObjects, [currentlySelected]);
+          deselectSlideObjects({
+            objIds: currentlySelected,
+          });
         }
       }
-      dispatch(addSlideObjToSelection, [slideObj.id]);
+      addSlideObjToSelection({
+        objId: slideObj.id,
+      });
     }
 
     draggablePointerDown(e);

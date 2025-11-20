@@ -3,12 +3,10 @@ import * as React from "react";
 import styles from "./slideObjView.module.css";
 import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useSlideObjDragAndDrop } from "../../../entities/hooks/lib/useSlideObjDragAndDrop.tsx";
 import { useSlideObjResize } from "../../../entities/hooks/lib/useSlideObjResize.tsx";
 
 export type SlideObjViewProps = {
-  editor: Editor;
   slide: Slide;
   slideObj: SlideObj;
   isSelected?: boolean;
@@ -17,13 +15,12 @@ export type SlideObjViewProps = {
 };
 
 export function SlideObjView(props: SlideObjViewProps) {
-  const { editor, slide, slideObj, isSelected = false, onSelect } = props;
+  const { slide, slideObj, isSelected = false, onSelect } = props;
   const slideId = slide.id;
   const [isHovered, setHovered] = React.useState(false);
   const { x, y, w, h } = slideObj.rect;
 
   const { handleClick, onPointerDown } = useSlideObjDragAndDrop({
-    editor,
     slide,
     slideId,
     slideObj,

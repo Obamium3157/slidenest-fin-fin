@@ -3,17 +3,16 @@ import type { Slide } from "../../../entities/slide/model/types.ts";
 import styles from "./slideViewFilmstrip.module.css";
 import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import * as React from "react";
-import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import { selectSlideRange } from "../../../entities/editor/lib/editor.ts";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../../shared/lib/constants/constants.ts";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useSlideViewFilmstripDragAndDrop } from "../../../entities/hooks/lib/useSlideViewFilmstripDragAndDrop.tsx";
+import { useAppActions } from "../../../entities/store/actions.ts";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
+import { getOrderedMapOrder } from "../../../shared/types/orderedMap/OrderedMap.ts";
 
 export type SlideViewFilmstripProps = {
-  editor: Editor;
   slide: Slide;
   scaleFactor: number;
   idx: number;
@@ -27,7 +26,6 @@ export type SlideViewFilmstripProps = {
 
 export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
   const {
-    editor,
     slide,
     scaleFactor,
     idx,
@@ -45,8 +43,18 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
     onDragEnd,
   });
 
+  const { selectSlideRange } = useAppActions();
+  const presentation = useAppSelector((state) => state.presentation);
+  const select = useAppSelector((state) => state.selection);
+
   const onFilmstripSlideClick = (e: React.MouseEvent): void => {
-    dispatch(selectSlideRange, [slide.id, e.shiftKey]);
+    const allSlideIds = getOrderedMapOrder(presentation.slides);
+    selectSlideRange({
+      slideId: slide.id,
+      shift: e.shiftKey,
+      allSlideIds,
+      currentSelectedSlideIds: select.selectedSlideIds,
+    });
   };
 
   const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
@@ -87,7 +95,7 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
         onPointerDown={onPointerDown}
       >
         <div style={innerStyle} className={innerClassName}>
-          <AllSlideObjects editor={editor} slide={slide} />
+          <AllSlideObjects slide={slide} />
         </div>
       </div>
     </div>

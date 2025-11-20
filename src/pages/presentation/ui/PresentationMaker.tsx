@@ -7,16 +7,9 @@ import styles from "./presentationMaker.module.css";
 import { Toolbar } from "../../../widgets/toolbar/ui/Toolbar.tsx";
 import { InterfaceButtonView } from "../../../widgets/interfaceButton/ui/InterfaceButtonView.tsx";
 import appIcon from "../assets/appicon.svg";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 import { Title } from "../../../widgets/title/ui/Title.tsx";
 
-export type PresentationMakerProps = {
-  editor: Editor;
-};
-
-export function PresentationMaker(props: PresentationMakerProps) {
-  const { editor } = props;
-
+export function PresentationMaker() {
   return (
     <div className={styles.mainField}>
       <div className={styles.headerPanel}>
@@ -24,17 +17,17 @@ export function PresentationMaker(props: PresentationMakerProps) {
           <div className={styles.iconAndInterfaceWrapper}>
             <img className={styles.logo} src={appIcon} alt="Логотип" />
             <div>
-              <Title editor={editor} />
+              <Title />
               <MenuBar items={getMenuBarItems()} />
             </div>
           </div>
           <InterfaceButtonView type={"slideShow"} alt={"Слайд-шоу"} />
         </div>
-        <Toolbar select={editor.select} />
+        <Toolbar />
       </div>
       <div className={styles.workField}>
-        <FilmStrip editor={editor} />
-        <Workspace editor={editor} />
+        <FilmStrip />
+        <Workspace />
       </div>
     </div>
   );

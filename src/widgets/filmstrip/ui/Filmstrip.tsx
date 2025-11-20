@@ -5,16 +5,20 @@ import {
 import { SlideViewFilmstrip } from "../../slideViewFilmstrip/ui/SlideViewFilmstrip.tsx";
 
 import styles from "./filmstrip.module.css";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useSlideDragAndDrop } from "../../../entities/hooks/lib/useSlideDragAndDrop.tsx";
+import type { Editor } from "../../../entities/editor/model/types.ts";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
 
-export type FilmstripProps = {
-  editor: Editor;
-};
+export function FilmStrip() {
+  const presentation = useAppSelector((state) => state.presentation);
+  const select = useAppSelector((state) => state.selection);
 
-export function FilmStrip(props: FilmstripProps) {
-  const { editor } = props;
-  const slides = editor.presentation.slides;
+  const editor: Editor = {
+    presentation,
+    select,
+  };
+
+  const slides = presentation.slides;
 
   const order = getOrderedMapOrder(slides);
 
@@ -27,7 +31,7 @@ export function FilmStrip(props: FilmstripProps) {
     onDragStart,
     onDrag,
     onDragEnd,
-  } = useSlideDragAndDrop({ editor, order });
+  } = useSlideDragAndDrop({ order });
 
   return (
     <div className={styles.filmstrip} ref={containerRef}>
@@ -52,7 +56,6 @@ export function FilmStrip(props: FilmstripProps) {
             />
             <SlideViewFilmstrip
               key={id}
-              editor={editor}
               slide={s}
               scaleFactor={7}
               idx={idx}

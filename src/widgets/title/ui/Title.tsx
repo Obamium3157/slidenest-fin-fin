@@ -1,36 +1,33 @@
 import styles from "./title.module.css";
-import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useEffect, useState } from "react";
 import * as React from "react";
-import { dispatch } from "../../../entities/editor/lib/modifyEditor.ts";
-import {
-  changePresentationTitle,
-  PRESENTATION_TITLE_PLACEHOLDER,
-} from "../../../entities/editor/lib/editor.ts";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
+import { useAppActions } from "../../../entities/store/actions.ts";
+import { PRESENTATION_TITLE_PLACEHOLDER } from "../../../shared/lib/constants/constants.ts";
 
-type TitleProps = {
-  editor: Editor;
-};
+export function Title() {
+  const presentation = useAppSelector((state) => state.presentation);
 
-export function Title(props: TitleProps) {
-  const { editor } = props;
+  const { setPresentationTitle } = useAppActions();
 
-  const [width, setWidth] = useState(editor.presentation.title.length);
+  const [width, setWidth] = useState(presentation.title.length);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(changePresentationTitle, [e.target.value]);
+    setPresentationTitle({
+      newTitle: e.target.value,
+    });
   };
 
   useEffect(() => {
-    const newWidth = editor.presentation.title.length;
+    const newWidth = presentation.title.length;
     setWidth(newWidth === 0 ? PRESENTATION_TITLE_PLACEHOLDER.length : newWidth);
-  }, [editor.presentation.title]);
+  }, [presentation.title]);
 
   return (
     <input
       type={"text"}
       className={styles.title}
-      value={editor.presentation.title}
+      value={presentation.title}
       style={{
         width: `${width + 1}ch`,
       }}

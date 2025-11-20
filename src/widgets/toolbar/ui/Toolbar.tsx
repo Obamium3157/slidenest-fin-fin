@@ -1,15 +1,11 @@
 import styles from "./toolbar.module.css";
 import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonView.tsx";
-import type { Select } from "../../../entities/select/model/types.ts";
 import { useRef } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
 
-type ToolbarProps = {
-  select: Select;
-};
-
-export function Toolbar(props: ToolbarProps) {
-  const { select } = props;
+export function Toolbar() {
+  const select = useAppSelector((state) => state.selection);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const colorInputRef = useRef<HTMLInputElement | null>(null);

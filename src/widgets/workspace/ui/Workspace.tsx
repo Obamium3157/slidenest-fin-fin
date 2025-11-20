@@ -2,14 +2,11 @@ import { getOrderedMapElementById } from "../../../shared/types/orderedMap/Order
 
 import styles from "./workspace.module.css";
 import { SlideView } from "../../slideView/ui/SlideView.tsx";
-import type { Editor } from "../../../entities/editor/model/types.ts";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
 
-export type WorkspaceProps = {
-  editor: Editor;
-};
-
-export function Workspace(props: WorkspaceProps) {
-  const { presentation, select } = props.editor;
+export function Workspace() {
+  const presentation = useAppSelector((state) => state.presentation);
+  const select = useAppSelector((state) => state.selection);
   const currentSlide = getOrderedMapElementById(
     presentation.slides,
     select.selectedSlideIds[0],
@@ -21,7 +18,7 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className={styles.workspace}>
-      <SlideView editor={props.editor} slide={currentSlide} />
+      <SlideView slide={currentSlide} />
     </div>
   );
 }

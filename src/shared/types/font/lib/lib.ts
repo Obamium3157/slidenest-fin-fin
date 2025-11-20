@@ -1,6 +1,8 @@
 import type { SlideObj } from "../../../../entities/slide/model/types.ts";
 import type { Rect } from "../../rect/Rect.ts";
 
+export const MIN_FONT_SIZE = 8;
+
 export function parseFontSize(fontSize: string | undefined): {
   value: number;
   unit: string;
