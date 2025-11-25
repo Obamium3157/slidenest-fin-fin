@@ -8,3 +8,4 @@ export const SLIDE_SIZE = {
   w: 1250,
   h: 700,
 };
+export const FILMSTRIP_SCALE_FACTOR = 7;

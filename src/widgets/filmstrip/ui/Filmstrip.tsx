@@ -8,6 +8,7 @@ import styles from "./filmstrip.module.css";
 import { useSlideDragAndDrop } from "../../../entities/hooks/lib/useSlideDragAndDrop.tsx";
 import type { Editor } from "../../../entities/editor/model/types.ts";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
+import { FILMSTRIP_SCALE_FACTOR } from "../../../shared/lib/constants/constants.ts";
 
 export function FilmStrip() {
   const presentation = useAppSelector((state) => state.presentation);
@@ -54,7 +55,7 @@ export function FilmStrip() {
             <SlideViewFilmstrip
               key={id}
               slide={s}
-              scaleFactor={7}
+              scaleFactor={FILMSTRIP_SCALE_FACTOR}
               idx={idx}
               preview={true}
               isSelected={editor.select.selectedSlideIds.includes(id)}
