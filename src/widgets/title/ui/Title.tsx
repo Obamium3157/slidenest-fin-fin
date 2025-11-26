@@ -6,7 +6,9 @@ import { useAppActions } from "../../../entities/store/actions.ts";
 import { PRESENTATION_TITLE_PLACEHOLDER } from "../../../shared/lib/constants/constants.ts";
 
 export function Title() {
-  const presentation = useAppSelector((state) => state.presentation);
+  const presentation = useAppSelector(
+    (state) => state.presentation.history.present,
+  );
 
   const { setPresentationTitle } = useAppActions();
 

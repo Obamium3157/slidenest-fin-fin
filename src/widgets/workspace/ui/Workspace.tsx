@@ -5,7 +5,9 @@ import { SlideView } from "../../slideView/ui/SlideView.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 
 export function Workspace() {
-  const presentation = useAppSelector((state) => state.presentation);
+  const presentation = useAppSelector(
+    (state) => state.presentation.history.present,
+  );
   const select = useAppSelector((state) => state.selection);
   const currentSlide = getOrderedMapElementById(
     presentation.slides,

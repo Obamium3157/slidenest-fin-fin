@@ -46,7 +46,9 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
   });
 
   const { selectSlideRange } = useAppActions();
-  const presentation = useAppSelector((state) => state.presentation);
+  const presentation = useAppSelector(
+    (state) => state.presentation.history.present,
+  );
   const select = useAppSelector((state) => state.selection);
 
   const onFilmstripSlideClick = (e: React.MouseEvent): void => {

@@ -11,7 +11,9 @@ import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { FILMSTRIP_SCALE_FACTOR } from "../../../shared/lib/constants/constants.ts";
 
 export function FilmStrip() {
-  const presentation = useAppSelector((state) => state.presentation);
+  const presentation = useAppSelector(
+    (state) => state.presentation.history.present,
+  );
   const select = useAppSelector((state) => state.selection);
 
   const editor: Editor = {

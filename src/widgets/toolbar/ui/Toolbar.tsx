@@ -3,8 +3,11 @@ import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonVie
 import { useRef } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
+import { useAppActions } from "../../../entities/store/actions.ts";
 
 export function Toolbar() {
+  const { undo, redo } = useAppActions();
+
   const select = useAppSelector((state) => state.selection);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -32,8 +35,8 @@ export function Toolbar() {
             alt={"Удалить слайд"}
             onClick={handleRemoveSlide}
           />
-          <InterfaceButtonView type={"undo"} alt={"Отменить"} />
-          <InterfaceButtonView type={"redo"} alt={"Повторить"} />
+          <InterfaceButtonView type={"undo"} alt={"Отменить"} onClick={undo} />
+          <InterfaceButtonView type={"redo"} alt={"Повторить"} onClick={redo} />
           <InterfaceButtonView type={"cursor"} alt={"Выбрать (Esc)"} />
           <InterfaceButtonView
             type={"textField"}
