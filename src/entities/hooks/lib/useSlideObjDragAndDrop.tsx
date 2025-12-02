@@ -2,7 +2,7 @@ import { useDraggable } from "./useDraggable.tsx";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
 import { getOrderedMapElementById } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import type { Slide, SlideObj } from "../../slide/model/types.ts";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import * as React from "react";
 import { useAppSelector } from "../../store/hooks.ts";
 import { useAppActions } from "../../store/actions.ts";
@@ -28,6 +28,23 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
     addSlideObjToSelection,
   } = useAppActions();
 
+  const [localPositions, setLocalPositionsState] = useState<Record<
+    string,
+    { x: number; y: number }
+  > | null>(null);
+
+  const localPositionsRef = useRef<Record<
+    string,
+    { x: number; y: number }
+  > | null>(null);
+
+  const setLocalPositions = (
+    val: Record<string, { x: number; y: number }> | null,
+  ) => {
+    localPositionsRef.current = val;
+    setLocalPositionsState(val);
+  };
+
   const { onPointerDown: draggablePointerDown, isDraggingRef } = useDraggable({
     preventDefault: true,
     onStart: () => {
@@ -51,6 +68,12 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
       }
 
       startRectMapRef.current = map;
+
+      const initialLocal: Record<string, { x: number; y: number }> = {};
+      for (const id of Object.keys(map)) {
+        initialLocal[id] = { x: map[id].x, y: map[id].y };
+      }
+      setLocalPositions(initialLocal);
     },
     onDrag: ({ dx, dy }) => {
       const startMap = startRectMapRef.current;
@@ -70,18 +93,25 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
         };
       }
 
-      changeMultipleSlideObjectsPosition({
-        slideId,
-        updates,
-      });
+      setLocalPositions(updates);
     },
     onEnd: () => {
+      const latest = localPositionsRef.current;
+
+      if (didDragRef.current && latest && Object.keys(latest).length > 0) {
+        changeMultipleSlideObjectsPosition({
+          slideId,
+          updates: latest,
+        });
+      }
+
       setTimeout(() => {
         didDragRef.current = false;
         isDraggingRef.current = false;
       }, 0);
 
       startRectMapRef.current = null;
+      setLocalPositions(null);
     },
   });
 
@@ -120,5 +150,6 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
     handleClick,
     onPointerDown: handlePointerDown,
     isDraggingRef,
+    localPositions,
   };
 }

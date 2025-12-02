@@ -18,14 +18,21 @@ export function SlideObjView(props: SlideObjViewProps) {
   const { slide, slideObj, isSelected = false, onSelect } = props;
   const slideId = slide.id;
   const [isHovered, setHovered] = React.useState(false);
-  const { x, y, w, h } = slideObj.rect;
+  const { w, h } = slideObj.rect;
 
-  const { handleClick, onPointerDown } = useSlideObjDragAndDrop({
-    slide,
-    slideId,
-    slideObj,
-    onSelect,
-  });
+  const { handleClick, onPointerDown, localPositions } = useSlideObjDragAndDrop(
+    {
+      slide,
+      slideId,
+      slideObj,
+      onSelect,
+    },
+  );
+
+  const local = localPositions?.[slideObj.id];
+
+  const x = local ? local.x : slideObj.rect.x;
+  const y = local ? local.y : slideObj.rect.y;
 
   const { handleResize } = useSlideObjResize({ slideId, slideObj });
 
