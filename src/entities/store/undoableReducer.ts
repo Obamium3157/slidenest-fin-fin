@@ -14,7 +14,6 @@ const createHistory = <S>(initialState: S): History<S> => ({
 
 interface UndoableState<S> {
   history: History<S>;
-  ignore: boolean;
 }
 
 export const undo = createAction("UNDO");
@@ -32,7 +31,7 @@ export const createUndoableReducer = <S>(
       };
     }
 
-    const newState: UndoableState<S> = { ...state, ignore: false };
+    const newState: UndoableState<S> = { ...state };
 
     if (undo.match(action)) {
       const { past, present, future } = newState.history;
