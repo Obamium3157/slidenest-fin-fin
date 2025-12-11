@@ -27,7 +27,6 @@ export const createUndoableReducer = <S>(
       const initialChildState = reducer(undefined, action);
       return {
         history: createHistory(initialChildState),
-        ignore: false,
       };
     }
 
