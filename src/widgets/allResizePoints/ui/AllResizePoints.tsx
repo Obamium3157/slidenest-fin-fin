@@ -6,10 +6,11 @@ import type { ResizePointType } from "../../../entities/resizePointType/model/ty
 type AllResizePointsProps = {
   parentRect: Rect;
   onResize: (rect: Rect) => void;
+  onStart?: () => void;
 };
 
 export function AllResizePoints(props: AllResizePointsProps) {
-  const { parentRect, onResize } = props;
+  const { parentRect, onResize, onStart } = props;
   const points: ResizePointType[] = [
     "TOP_LEFT",
     "TOP",
@@ -28,6 +29,7 @@ export function AllResizePoints(props: AllResizePointsProps) {
           type={type}
           parentRect={parentRect}
           onResize={onResize}
+          onStart={onStart}
         />
       ))}
     </div>

@@ -28,21 +28,15 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
     addSlideObjToSelection,
   } = useAppActions();
 
-  const [localPositions, setLocalPositionsState] = useState<Record<
-    string,
-    { x: number; y: number }
-  > | null>(null);
+  const [localRects, setLocalRects] = useState<Record<string, Rect> | null>(
+    null,
+  );
 
-  const localPositionsRef = useRef<Record<
-    string,
-    { x: number; y: number }
-  > | null>(null);
+  const localRectsRef = useRef<Record<string, Rect> | null>(null);
 
-  const setLocalPositions = (
-    val: Record<string, { x: number; y: number }> | null,
-  ) => {
-    localPositionsRef.current = val;
-    setLocalPositionsState(val);
+  const updateLocalRectsRef = (val: Record<string, Rect> | null) => {
+    localRectsRef.current = val;
+    setLocalRects(val);
   };
 
   const { onPointerDown: draggablePointerDown, isDraggingRef } = useDraggable({
@@ -69,11 +63,16 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
 
       startRectMapRef.current = map;
 
-      const initialLocal: Record<string, { x: number; y: number }> = {};
+      const initialLocal: Record<string, Rect> = {};
       for (const id of Object.keys(map)) {
-        initialLocal[id] = { x: map[id].x, y: map[id].y };
+        initialLocal[id] = {
+          x: map[id].x,
+          y: map[id].y,
+          w: map[id].w,
+          h: map[id].h,
+        };
       }
-      setLocalPositions(initialLocal);
+      updateLocalRectsRef(initialLocal);
     },
     onDrag: ({ dx, dy }) => {
       const startMap = startRectMapRef.current;
@@ -84,19 +83,21 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
 
       const ids = Object.keys(startMap);
 
-      const updates: Record<string, { x: number; y: number }> = {};
+      const updates: Record<string, Rect> = {};
       for (const id of ids) {
         const start = startMap[id];
         updates[id] = {
           x: Math.round(start.x + dx),
           y: Math.round(start.y + dy),
+          w: start.w,
+          h: start.h,
         };
       }
 
-      setLocalPositions(updates);
+      updateLocalRectsRef(updates);
     },
     onEnd: () => {
-      const latest = localPositionsRef.current;
+      const latest = localRectsRef.current;
 
       if (didDragRef.current && latest && Object.keys(latest).length > 0) {
         changeMultipleSlideObjectsPosition({
@@ -111,7 +112,7 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
       }, 0);
 
       startRectMapRef.current = null;
-      setLocalPositions(null);
+      updateLocalRectsRef(null);
     },
   });
 
@@ -150,6 +151,6 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
     handleClick,
     onPointerDown: handlePointerDown,
     isDraggingRef,
-    localPositions,
+    localRects: localRects,
   };
 }

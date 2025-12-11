@@ -12,10 +12,11 @@ type ResizePointViewProps = {
   type: ResizePointType;
   parentRect: Rect;
   onResize: (rect: Rect) => void;
+  onStart?: () => void;
 };
 
 export function ResizePointView(props: ResizePointViewProps) {
-  const { type, parentRect, onResize } = props;
+  const { type, parentRect, onResize, onStart } = props;
 
   const { onPointerDown } = useResizePointDrag({ type, parentRect, onResize });
 
@@ -35,11 +36,18 @@ export function ResizePointView(props: ResizePointViewProps) {
     LEFT: { top: "50%", left: "0%" },
   };
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onStart?.();
+    onPointerDown(e);
+  };
+
   return positionMap[type as ResizePointType] ? (
     <div
       className={styles.resizePoint}
       style={{ ...style, ...positionMap[type as ResizePointType] }}
-      onPointerDown={onPointerDown}
+      onPointerDown={handlePointerDown}
     />
   ) : null;
 }

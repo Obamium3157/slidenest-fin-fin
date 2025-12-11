@@ -1,6 +1,6 @@
 import styles from "./toolbar.module.css";
 import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonView.tsx";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
@@ -20,6 +20,40 @@ export function Toolbar() {
     handleAddImage,
     handleChangeBackgroundColor,
   } = useToolbarInitialization({ select, fileInputRef, colorInputRef });
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable) {
+          return;
+        }
+      }
+
+      const key = e.key.toLowerCase();
+      const mod = e.ctrlKey || e.metaKey;
+
+      if (!mod) return;
+
+      if (key === "z") {
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      if (key === "y") {
+        e.preventDefault();
+        redo();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
+  }, [undo, redo]);
 
   return (
     <>

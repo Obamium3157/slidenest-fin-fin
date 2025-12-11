@@ -5,6 +5,7 @@ import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
 import { useSlideObjDragAndDrop } from "../../../entities/hooks/lib/useSlideObjDragAndDrop.tsx";
 import { useSlideObjResize } from "../../../entities/hooks/lib/useSlideObjResize.tsx";
+import type { Rect } from "../../../shared/types/rect/Rect.ts";
 
 export type SlideObjViewProps = {
   slide: Slide;
@@ -18,23 +19,36 @@ export function SlideObjView(props: SlideObjViewProps) {
   const { slide, slideObj, isSelected = false, onSelect } = props;
   const slideId = slide.id;
   const [isHovered, setHovered] = React.useState(false);
-  const { w, h } = slideObj.rect;
 
-  const { handleClick, onPointerDown, localPositions } = useSlideObjDragAndDrop(
-    {
-      slide,
-      slideId,
-      slideObj,
-      onSelect,
-    },
-  );
+  const { handleClick, onPointerDown, localRects } = useSlideObjDragAndDrop({
+    slide,
+    slideId,
+    slideObj,
+    onSelect,
+  });
 
-  const local = localPositions?.[slideObj.id];
+  const local = localRects?.[slideObj.id] ?? null;
 
-  const x = local ? local.x : slideObj.rect.x;
-  const y = local ? local.y : slideObj.rect.y;
+  const {
+    handleResize,
+    startResize,
+    localRect: resizeLocal,
+  } = useSlideObjResize({
+    slideId,
+    slideObj,
+    localRect: local,
+  });
 
-  const { handleResize } = useSlideObjResize({ slideId, slideObj });
+  const visualRect: Rect = resizeLocal
+    ? resizeLocal
+    : local
+      ? local
+      : slideObj.rect;
+
+  const x = visualRect.x;
+  const y = visualRect.y;
+  const w = visualRect.w;
+  const h = visualRect.h;
 
   const handlePointerDownWrapper = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -56,6 +70,10 @@ export function SlideObjView(props: SlideObjViewProps) {
     height: `${h}px`,
   };
 
+  const onResizeStart = () => {
+    startResize(visualRect);
+  };
+
   return (
     <div
       className={className}
@@ -66,8 +84,13 @@ export function SlideObjView(props: SlideObjViewProps) {
       onClick={handleClick}
     >
       {isSelected && (
-        <AllResizePoints parentRect={slideObj.rect} onResize={handleResize} />
+        <AllResizePoints
+          parentRect={visualRect}
+          onResize={handleResize}
+          onStart={onResizeStart}
+        />
       )}
+
       {slideObj.type === "text" ? (
         <div
           className={styles.slideObjText}

@@ -77,6 +77,7 @@ export const {
   updateSlideObject,
   changeSlideObjectPosition,
   changeMultipleSlideObjectsPosition,
+  setSlideObjRect,
   changeSlideObjSize,
   updateTextContent,
   updateTextFont,

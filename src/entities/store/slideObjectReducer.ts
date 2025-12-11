@@ -12,6 +12,18 @@ import type { SlideText } from "../slideText/model/types.ts";
 import type { Font } from "../../shared/types/font/Font.ts";
 import type { Color } from "../../shared/types/color/Color.ts";
 
+function getValidatedPosition(newX: number, newY: number, obj: SlideObj) {
+  let finalX = newX;
+  let finalY = newY;
+
+  if (finalX < 0) finalX = 0;
+  if (finalY < 0) finalY = 0;
+  if (finalX + obj.rect.w > SLIDE_SIZE.w) finalX = SLIDE_SIZE.w - obj.rect.w;
+  if (finalY + obj.rect.h > SLIDE_SIZE.h) finalY = SLIDE_SIZE.h - obj.rect.h;
+
+  return { finalX, finalY };
+}
+
 export default {
   updateSlideObject: (
     state: WritableDraft<Presentation>,
@@ -56,13 +68,7 @@ export default {
     const obj = getOrderedMapElementById(slide.slideObjects, objId);
     if (!obj) return;
 
-    let finalX = newX;
-    let finalY = newY;
-
-    if (finalX < 0) finalX = 0;
-    if (finalY < 0) finalY = 0;
-    if (finalX + obj.rect.w > SLIDE_SIZE.w) finalX = SLIDE_SIZE.w - obj.rect.w;
-    if (finalY + obj.rect.h > SLIDE_SIZE.h) finalY = SLIDE_SIZE.h - obj.rect.h;
+    const { finalX, finalY } = getValidatedPosition(newX, newY, obj);
 
     const newRect = { ...obj.rect, x: finalX, y: finalY };
 
@@ -108,6 +114,7 @@ export default {
     const newSlide: Slide = { ...slide, slideObjects: newSlideObjects };
     state.slides = getNewOrderedMapWithPushed(state.slides, slideId, newSlide);
   },
+
   changeSlideObjSize: (
     state: WritableDraft<Presentation>,
     action: PayloadAction<{
@@ -140,6 +147,65 @@ export default {
         ...obj,
         rect: newRect,
       }),
+    };
+    state.slides = getNewOrderedMapWithPushed(state.slides, slideId, newSlide);
+  },
+
+  setSlideObjRect: (
+    state: WritableDraft<Presentation>,
+    action: PayloadAction<{
+      slideId: string;
+      objId: string;
+      newRect: Rect;
+    }>,
+  ) => {
+    const { slideId, objId, newRect } = action.payload;
+    const slide = getOrderedMapElementById(state.slides, slideId);
+    if (!slide) return;
+
+    const obj = getOrderedMapElementById(slide.slideObjects, objId);
+    if (!obj) return;
+
+    const startRect = obj.rect;
+
+    const clamped = clampResizeRect(
+      startRect,
+      newRect,
+      SLIDE_SIZE.w,
+      SLIDE_SIZE.h,
+    );
+
+    const finalW = Number.isFinite(clamped.w)
+      ? Math.max(0, Math.round(clamped.w))
+      : startRect.w;
+    const finalH = Number.isFinite(clamped.h)
+      ? Math.max(0, Math.round(clamped.h))
+      : startRect.h;
+    let finalX = Number.isFinite(clamped.x)
+      ? Math.round(clamped.x)
+      : startRect.x;
+    let finalY = Number.isFinite(clamped.y)
+      ? Math.round(clamped.y)
+      : startRect.y;
+
+    if (finalX < 0) finalX = 0;
+    if (finalY < 0) finalY = 0;
+    if (finalX + finalW > SLIDE_SIZE.w)
+      finalX = Math.max(0, SLIDE_SIZE.w - finalW);
+    if (finalY + finalH > SLIDE_SIZE.h)
+      finalY = Math.max(0, SLIDE_SIZE.h - finalH);
+
+    const validatedRect: Rect = { x: finalX, y: finalY, w: finalW, h: finalH };
+
+    const newObj: SlideObj = { ...obj, rect: validatedRect };
+
+    const newSlide: Slide = {
+      ...slide,
+      slideObjects: getNewOrderedMapWithPushed(
+        slide.slideObjects,
+        objId,
+        newObj,
+      ),
     };
     state.slides = getNewOrderedMapWithPushed(state.slides, slideId, newSlide);
   },

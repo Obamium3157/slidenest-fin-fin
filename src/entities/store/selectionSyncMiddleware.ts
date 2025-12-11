@@ -3,7 +3,7 @@ import type { Select } from "../select/model/types.ts";
 import { redo, undo } from "./undoableReducer.ts";
 import { setSelection } from "./selectionSlice.ts";
 
-export const selectionSyncMiddleware: Middleware = (storeAPI) => {
+export const selectionSyncMiddleware: Middleware = (store) => {
   let past: Select[] = [];
   let future: Select[] = [];
 
@@ -11,14 +11,14 @@ export const selectionSyncMiddleware: Middleware = (storeAPI) => {
     const isUndo = undo.match(action);
     const isRedo = redo.match(action);
 
-    const prevPresentation = storeAPI.getState().presentation.history.present;
-    const prevSelection = storeAPI.getState().selection;
+    const prevPresentation = store.getState().presentation.history.present;
+    const prevSelection = store.getState().selection;
 
     const result = next(action);
 
-    const nextPresentation = storeAPI.getState().presentation.history.present;
-    const nextSelection = storeAPI.getState().selection;
-    const history = storeAPI.getState().presentation.history;
+    const nextPresentation = store.getState().presentation.history.present;
+    const nextSelection = store.getState().selection;
+    const history = store.getState().presentation.history;
 
     if (!isUndo && !isRedo) {
       if (prevPresentation !== nextPresentation) {
@@ -39,7 +39,7 @@ export const selectionSyncMiddleware: Middleware = (storeAPI) => {
         const contextToRestore = past.pop()!;
         future.unshift(nextSelection);
 
-        storeAPI.dispatch(setSelection(contextToRestore));
+        store.dispatch(setSelection(contextToRestore));
       }
 
       return result;
@@ -54,7 +54,7 @@ export const selectionSyncMiddleware: Middleware = (storeAPI) => {
           past = past.slice(-history.past.length);
         }
 
-        storeAPI.dispatch(setSelection(contextToRestore));
+        store.dispatch(setSelection(contextToRestore));
       }
 
       return result;
