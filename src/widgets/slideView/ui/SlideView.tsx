@@ -14,7 +14,7 @@ type SlideViewProps = {
 export function SlideView(props: SlideViewProps) {
   const { slide } = props;
 
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
 
   const { deselectSlideObjects, removeSlideObjects, addSlideObjToSelection } =
     useAppActions();

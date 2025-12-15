@@ -8,7 +8,7 @@ export function Workspace() {
   const presentation = useAppSelector(
     (state) => state.presentation.history.present,
   );
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
   const currentSlide = getOrderedMapElementById(
     presentation.slides,
     select.selectedSlideIds[0],

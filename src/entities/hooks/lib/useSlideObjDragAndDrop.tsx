@@ -20,7 +20,7 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
   const startRectMapRef = useRef<Record<string, Rect> | null>(null);
   const didDragRef = useRef(false);
 
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
 
   const {
     changeMultipleSlideObjectsPosition,

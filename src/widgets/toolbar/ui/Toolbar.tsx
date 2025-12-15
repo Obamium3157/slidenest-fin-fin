@@ -8,7 +8,7 @@ import { useAppActions } from "../../../entities/store/actions.ts";
 export function Toolbar() {
   const { undo, redo } = useAppActions();
 
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const colorInputRef = useRef<HTMLInputElement | null>(null);

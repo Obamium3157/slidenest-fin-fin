@@ -49,7 +49,7 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
   const presentation = useAppSelector(
     (state) => state.presentation.history.present,
   );
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
 
   const onFilmstripSlideClick = (e: React.MouseEvent): void => {
     const allSlideIds = getOrderedMapOrder(presentation.slides);

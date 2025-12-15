@@ -1,9 +1,19 @@
 import { type Reducer, type Action, createAction } from "@reduxjs/toolkit";
+import type { Presentation } from "../presentation/model/types.ts";
+import type { Select } from "../select/model/types.ts";
+
+export const undo = createAction("UNDO");
+export const redo = createAction("REDO");
 
 interface History<S> {
   past: S[];
   present: S;
   future: S[];
+}
+
+interface SelectionHistory<Sel> {
+  past: Sel[];
+  future: Sel[];
 }
 
 const createHistory = <S>(initialState: S): History<S> => ({
@@ -12,76 +22,107 @@ const createHistory = <S>(initialState: S): History<S> => ({
   future: [],
 });
 
-interface UndoableState<S> {
+const createSelectionHistory = <Sel>(): SelectionHistory<Sel> => ({
+  past: [],
+  future: [],
+});
+
+type UndoableWithSelectionState<S, Sel> = {
   history: History<S>;
-}
+  selection: Sel;
+  selectionHistory: SelectionHistory<Sel>;
+};
 
-export const undo = createAction("UNDO");
-export const redo = createAction("REDO");
-
-export const createUndoableReducer = <S>(
+export const createUndoableReducer = <
+  S extends Presentation,
+  Sel extends Select,
+>(
   reducer: Reducer<S>,
-): Reducer<UndoableState<S>> => {
-  return (state: UndoableState<S> | undefined, action: Action) => {
+  selectionReducer: Reducer<Sel>,
+): Reducer<UndoableWithSelectionState<S, Sel>> => {
+  return (
+    state: UndoableWithSelectionState<S, Sel> | undefined,
+    action: Action,
+  ): UndoableWithSelectionState<S, Sel> => {
     if (!state) {
-      const initialChildState = reducer(undefined, action);
+      const initialPresentation = reducer(undefined, action);
+      const initialSelection = selectionReducer(undefined, action);
+
       return {
-        history: createHistory(initialChildState),
+        history: createHistory(initialPresentation),
+        selection: initialSelection,
+        selectionHistory: createSelectionHistory(),
       };
     }
 
-    const newState: UndoableState<S> = { ...state };
+    const { history, selectionHistory, selection } = state;
 
     if (undo.match(action)) {
-      const { past, present, future } = newState.history;
-      if (past.length === 0) return newState;
+      if (history.past.length === 0) {
+        return state;
+      }
 
-      const previous = past[past.length - 1];
-      const newPast = past.slice(0, past.length - 1);
+      const previousPresentation = history.past[history.past.length - 1];
+      const previousSelection =
+        selectionHistory.past[selectionHistory.past.length - 1];
 
       return {
-        ...newState,
         history: {
-          past: newPast,
-          present: previous,
-          future: [present, ...future],
+          past: history.past.slice(0, -1),
+          present: previousPresentation,
+          future: [history.present, ...history.future],
+        },
+        selection: previousSelection,
+        selectionHistory: {
+          past: selectionHistory.past.slice(0, -1),
+          future: [selection, ...selectionHistory.future],
         },
       };
     }
 
     if (redo.match(action)) {
-      const { past, present, future } = newState.history;
-      if (future.length === 0) return newState;
+      if (history.future.length === 0) {
+        return state;
+      }
 
-      const next = future[0];
-      const newFuture = future.slice(1);
+      const nextPresentation = history.future[0];
+      const nextSelection = selectionHistory.future[0];
 
       return {
-        ...newState,
         history: {
-          past: [...past, present],
-          present: next,
-          future: newFuture,
+          past: [...history.past, history.present],
+          present: nextPresentation,
+          future: history.future.slice(1),
+        },
+        selection: nextSelection,
+        selectionHistory: {
+          past: [...selectionHistory.past, selection],
+          future: selectionHistory.future.slice(1),
         },
       };
     }
 
-    const previousPresent = newState.history.present;
+    const previousPresent = history.present;
     const newPresent = reducer(previousPresent, action);
+    const newSelection = selectionReducer(selection, action);
 
     if (newPresent === previousPresent) {
       return {
-        ...newState,
-        history: { ...newState.history, present: newPresent },
+        history,
+        selection: newSelection,
+        selectionHistory,
       };
     }
 
-    const { past } = newState.history;
     return {
-      ...newState,
       history: {
-        past: [...past, previousPresent],
+        past: [...history.past, previousPresent],
         present: newPresent,
+        future: [],
+      },
+      selection: newSelection,
+      selectionHistory: {
+        past: [...selectionHistory.past, selection],
         future: [],
       },
     };

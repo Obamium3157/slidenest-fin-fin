@@ -20,7 +20,7 @@ export function useSlideDragAndDrop(args: SlideDragAndDropArgs) {
 
   const draggingSlideIdsRef = useRef<string[] | null>(null);
 
-  const select = useAppSelector((state) => state.selection);
+  const select = useAppSelector((state) => state.presentation.selection);
   const { moveMultipleSlides } = useAppActions();
 
   const findSeparatorIndexAtPoint = useCallback(
