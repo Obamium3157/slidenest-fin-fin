@@ -37,7 +37,7 @@ export const createUndoableReducer = <
   S extends Presentation,
   Sel extends Select,
 >(
-  reducer: Reducer<S>,
+  presentationReducer: Reducer<S>,
   selectionReducer: Reducer<Sel>,
 ): Reducer<UndoableWithSelectionState<S, Sel>> => {
   return (
@@ -45,7 +45,7 @@ export const createUndoableReducer = <
     action: Action,
   ): UndoableWithSelectionState<S, Sel> => {
     if (!state) {
-      const initialPresentation = reducer(undefined, action);
+      const initialPresentation = presentationReducer(undefined, action);
       const initialSelection = selectionReducer(undefined, action);
 
       return {
@@ -103,7 +103,7 @@ export const createUndoableReducer = <
     }
 
     const previousPresent = history.present;
-    const newPresent = reducer(previousPresent, action);
+    const newPresent = presentationReducer(previousPresent, action);
     const newSelection = selectionReducer(selection, action);
 
     if (newPresent === previousPresent) {

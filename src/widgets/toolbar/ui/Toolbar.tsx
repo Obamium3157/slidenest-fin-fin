@@ -28,13 +28,13 @@ export function Toolbar() {
 
       if (!mod) return;
 
-      if (key === "z") {
+      if (key === "z" || key === "я") {
         e.preventDefault();
         undo();
         return;
       }
 
-      if (key === "y") {
+      if (key === "y" || key === "н") {
         e.preventDefault();
         redo();
         return;
