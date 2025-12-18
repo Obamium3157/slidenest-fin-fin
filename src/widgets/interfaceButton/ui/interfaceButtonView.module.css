@@ -2,9 +2,10 @@
   width: fit-content;
   height: 40px;
   padding: 10px 16px;
-  border: 2px solid #423e3e4c;
+  border: 2px solid #222;
   border-radius: 100px;
-  background: white;
+  background: transparent;
+  transition: background-color 0.15s ease-in-out;
   font:
     400 14px/12px SST,
     sans-serif;
@@ -12,6 +13,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.slideShowButton:hover {
+    cursor: pointer;
+    background-color: rgb(0 0 0 / 8%);
 }
 
 .toolbarButton {

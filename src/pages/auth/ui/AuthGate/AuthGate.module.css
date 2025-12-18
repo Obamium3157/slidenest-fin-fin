@@ -1,0 +1,35 @@
+.authContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    height: 100vh;
+}
+
+.authOptionsContainer {
+    display: flex;
+    gap: 12px;
+    align-self: flex-end;
+    margin-bottom: 12px;
+}
+
+.authOptionButton {
+    border: 2px solid #222;
+    border-radius: 5px;
+    padding: 5px 12px;
+    width: 180px;
+    height: 40px;
+}
+
+.authOptionButton:hover {
+    cursor: pointer;
+}
+
+
+.authContentContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}

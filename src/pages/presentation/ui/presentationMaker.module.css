@@ -31,6 +31,12 @@
   padding: 5px;
 }
 
+.sideContainer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .titleAndInterfaceWrapper {
   display: flex;
   flex-direction: row;
