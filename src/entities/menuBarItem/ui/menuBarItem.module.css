@@ -4,11 +4,7 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-
-  /* font: var(--default-font); */
-  font-size: 14px;
-
-  /* color: var(--default-font-color); */
+  font: var(--font-display-xxxsmall);
   width: fit-content;
   height: 24px;
   padding: 2px 7px;

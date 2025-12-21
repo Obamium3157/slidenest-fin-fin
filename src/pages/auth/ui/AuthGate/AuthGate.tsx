@@ -9,36 +9,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
 
-  if (loading) {
-    return <div>Загрузка...</div>;
+  if (user) {
+    return <div style={{ height: "100vh" }}>{children}</div>;
   }
 
-  if (!user) {
-    return (
-      <div className={styles.authContainer}>
-        <div className={styles.authOptionsContainer}>
-          <button
-            className={styles.authOptionButton}
-            onClick={() => setMode("login")}
-            disabled={mode === "login"}
-          >
-            Войти
-          </button>
-          <button
-            className={styles.authOptionButton}
-            onClick={() => setMode("register")}
-            disabled={mode === "register"}
-          >
-            Зарегистрироваться
-          </button>
-        </div>
-
-        <div className={styles.authContentContainer}>
-          {mode === "login" ? <LoginForm /> : <RegisterForm />}
-        </div>
+  return (
+    <div className={styles.authContainer}>
+      <div className={styles.authContentContainer} aria-busy={loading}>
+        {mode === "login" ? (
+          <LoginForm onRedirectClick={() => setMode("register")} />
+        ) : (
+          <RegisterForm onRedirectClick={() => setMode("login")} />
+        )}
       </div>
-    );
-  }
 
-  return <div style={{ height: "100vh" }}>{children}</div>;
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingText}>Загрузка...</div>
+        </div>
+      )}
+    </div>
+  );
 }

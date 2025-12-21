@@ -6,9 +6,7 @@
   border-radius: 100px;
   background: transparent;
   transition: background-color 0.15s ease-in-out;
-  font:
-    400 14px/12px SST,
-    sans-serif;
+  font: var(--font-display-xxxsmall);
   color: #222;
   display: flex;
   justify-content: center;

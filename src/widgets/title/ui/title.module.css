@@ -1,8 +1,6 @@
 .title {
   width: 300px;
-  font:
-    500 18px/22px SST,
-    sans-serif;
+  font: var(--font-display-xxsmall);
   color: #222;
   margin: 0 7px 2px;
 }

@@ -1,4 +1,5 @@
 .title {
+    font: var(--font-header-medium);
     text-align: center;
 }
 
@@ -12,24 +13,20 @@
 }
 
 .formLabel {
+    font: var(--font-display-xxsmall);
+    font-weight: 600;
     width: 100%;
     align-self: flex-start;
 }
 
 .formInputField {
+    font: var(--font-display-xxxsmall);
     margin-top: 6px;
+    padding: 1rem 2rem;
     width: 100%;
-    height: 40px;
+    height: fit-content;
     background: transparent;
-}
-
-.submitButton {
-    width: 100%;
-    height: 40px;
-    background-color: #222222F8;
-    transition-duration: 0.5s;
-    color: white;
-    text-align: center;
+    transition: border-color 160ms ease-in-out, box-shadow 160ms ease-in-out;
 }
 
 .formInputField,
@@ -39,8 +36,71 @@
     padding: 5px 12px;
 }
 
+.inputError {
+    border-color: #dc3545;
+}
+
+.inputError:focus {
+    border-color: #dc3545;
+}
+
+.formError {
+    font: var(--font-text-small);
+    color: #dc3545;
+    width: 100%;
+}
+
+.formInputField:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.submitButton {
+    font: var(--font-display-xsmall);
+    width: 100%;
+    height: fit-content;
+    background-color: #222222F8;
+    transition-duration: 0.5s;
+    color: white;
+    text-align: center;
+}
+
+
+
 .submitButton:hover {
     background-color: #222;
     cursor: pointer;
 }
 
+.redirectLinkContainer {
+    font: var(--font-text-small);
+    color: #222;
+}
+
+.redirectLink {
+    color: #007bff;
+}
+
+.redirectLink:hover {
+    cursor: pointer;
+}
+
+
+.formInputField:-webkit-autofill,
+.formInputField:-webkit-autofill:hover,
+.formInputField:-webkit-autofill:focus,
+.formInputField:-webkit-autofill:active {
+    background-color: transparent;
+    box-shadow: 0 0 0 1000px transparent inset;
+    -webkit-text-fill-color: #222;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+.formInputField:-moz-autofill,
+.formInputField:-moz-autofill:hover,
+.formInputField:-moz-autofill:focus,
+.formInputField:-moz-autofill:active {
+    background-color: transparent !important;
+    box-shadow: 0 0 0 1000px transparent inset !important;
+    -moz-text-fill-color: #222 !important;
+}

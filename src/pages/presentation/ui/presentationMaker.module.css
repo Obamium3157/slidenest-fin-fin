@@ -8,8 +8,6 @@
 .mainField {
   display: flex;
   flex-direction: column;
-
-  /* color: var(--default-font-color); */
   margin-left: 50px;
   height: 100vh;
 }
