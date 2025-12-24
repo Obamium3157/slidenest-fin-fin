@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { account } from "../shared/lib/appwrite.ts";
+import { account } from "../shared/lib/appwrite/appwrite.ts";
 import { AuthContext } from "./types.ts";
 import type { AppwriteUser } from "../shared/types/auth/types.ts";
 

@@ -10,11 +10,11 @@ import { generateId } from "../../shared/lib/generateId.ts";
 import { MAX_PRESENTATION_TITLE_SIZE } from "../../shared/lib/constants/constants.ts";
 import type { Presentation } from "../presentation/model/types.ts";
 import type { Slide, SlideObj } from "../slide/model/types.ts";
-import { getMaxEditor } from "../presentation/model/test/data.ts";
 import slidesReducer from "./slidesReducer.ts";
 import slideObjectReducer from "./slideObjectReducer.ts";
+import { createDefaultPresentation } from "../presentation/model/createDefaultPresentation.ts";
 
-const initialState: Presentation = getMaxEditor().presentation;
+const initialState: Presentation = createDefaultPresentation();
 
 const presentationSlice = createSlice({
   name: "presentation",

@@ -1,19 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { createUndoableReducer } from "./undoableReducer";
-
-import presentationReducer from "./presentationSlice";
-import selectionReducer from "./selectionSlice";
-
-const undoablePresentationReducer = createUndoableReducer(
-  presentationReducer,
-  selectionReducer,
-);
+import { rootReducer } from "./rootReducer.ts";
+import { autosaveMiddleware } from "./autosaveMiddleware.ts";
 
 export const store = configureStore({
-  reducer: {
-    presentation: undoablePresentationReducer,
-  },
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false }).concat(
+      autosaveMiddleware,
+    ),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

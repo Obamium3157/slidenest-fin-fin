@@ -3,7 +3,6 @@ import * as React from "react";
 
 type PickedImage = {
   file: File;
-  dataUrl: string;
   width: number;
   height: number;
 };
@@ -11,30 +10,31 @@ type PickedImage = {
 export function useImagePicker(
   inputRef?: React.RefObject<HTMLInputElement | null>,
 ) {
-  const readFileAsDataURL = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error("Ошибка чтения файла"));
-      reader.onload = () => resolve(String(reader.result));
-      reader.readAsDataURL(file);
-    });
-
   const loadImageSize = (
-    src: string,
+    file: File,
   ): Promise<{ width: number; height: number }> =>
     new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = () =>
-        resolve({ width: img.naturalWidth, height: img.naturalHeight });
-      img.onerror = () => reject(new Error("Ошибка при загрузке изображения"));
-      img.src = src;
+
+      img.onload = () => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        URL.revokeObjectURL(url);
+        resolve({ width: w, height: h });
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Ошибка при загрузке изображения"));
+      };
+
+      img.src = url;
     });
 
   const pickImage = useCallback(async (): Promise<PickedImage | null> => {
     const input = inputRef?.current;
-    if (!input) {
-      return Promise.resolve(null);
-    }
+    if (!input) return null;
 
     return new Promise((resolve, reject) => {
       const onChange = async () => {
@@ -54,10 +54,8 @@ export function useImagePicker(
             return;
           }
 
-          const dataUrl = await readFileAsDataURL(file);
-          const { width, height } = await loadImageSize(dataUrl);
-
-          resolve({ file, dataUrl, width, height });
+          const { width, height } = await loadImageSize(file);
+          resolve({ file, width, height });
         } catch (error) {
           reject(error);
         }

@@ -9,8 +9,32 @@ import { InterfaceButtonView } from "../../../widgets/interfaceButton/ui/Interfa
 import appIcon from "../assets/appicon.svg";
 import { Title } from "../../../widgets/title/ui/Title.tsx";
 import { AvatarView } from "../../../widgets/avatarView/ui/AvatarView.tsx";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../../entities/store/hooks.ts";
+import { useEffect } from "react";
+import { bootstrapPresentation } from "../../../entities/store/appSlice.ts";
 
 export function PresentationMaker() {
+  const dispatch = useAppDispatch();
+  const status = useAppSelector((s) => s.app.status);
+  const error = useAppSelector((s) => s.app.error);
+
+  useEffect(() => {
+    if (status === "idle") {
+      void dispatch(bootstrapPresentation());
+    }
+  }, [dispatch, status]);
+
+  if (status === "loading" || status === "idle") {
+    return <div>Загрузка презентации...</div>;
+  }
+
+  if (status === "error") {
+    return <div>Ошибка загрузки: {error}</div>;
+  }
+
   return (
     <div className={styles.mainField}>
       <div className={styles.headerPanel}>

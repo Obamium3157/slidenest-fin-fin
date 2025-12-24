@@ -1,18 +1,22 @@
-import { useImagePicker } from "./useImagePicker.tsx";
-import { useColorPicker } from "./useColorPicker.tsx";
-import type { Select } from "../../select/model/types.ts";
-import type { RefObject } from "react";
-import { useAppActions } from "../../store/actions.ts";
+import { useCallback } from "react";
+import type * as React from "react";
 
-type UseToolbarInitializationArgs = {
+import type { Select } from "../../select/model/types";
+import { useAppActions } from "../../store/actions";
+import { useImagePicker } from "./useImagePicker";
+import { uploadImageToStorage } from "../../../shared/lib/appwrite/repo/presentationRepo.ts";
+
+type Params = {
   select: Select;
-  fileInputRef: RefObject<HTMLInputElement | null>;
-  colorInputRef: RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  colorInputRef: React.RefObject<HTMLInputElement | null>;
 };
 
-export function useToolbarInitialization(args: UseToolbarInitializationArgs) {
-  const { select, fileInputRef, colorInputRef } = args;
-
+export function useToolbarInitialization({
+  select,
+  fileInputRef,
+  colorInputRef,
+}: Params) {
   const {
     addSlide,
     removeSlide,
@@ -22,61 +26,56 @@ export function useToolbarInitialization(args: UseToolbarInitializationArgs) {
   } = useAppActions();
 
   const { pickImage } = useImagePicker(fileInputRef);
-  const { pickColor } = useColorPicker(colorInputRef);
 
-  const handleCreateSlide = (): void => {
+  const currentSlideId = select.selectedSlideIds[0];
+
+  const handleCreateSlide = useCallback(() => {
     addSlide();
-  };
+  }, [addSlide]);
 
-  const handleRemoveSlide = (): void => {
-    const id = select.selectedSlideIds[0];
-    if (id) {
-      removeSlide({ targetSlideId: id });
-    }
-  };
+  const handleRemoveSlide = useCallback(() => {
+    if (!currentSlideId) return;
+    removeSlide({ targetSlideId: currentSlideId });
+  }, [removeSlide, currentSlideId]);
 
-  const handleAddText = (): void => {
-    const id = select.selectedSlideIds[0];
-    if (!id) return;
-    addTextToSlide({
-      slideId: id,
+  const handleAddText = useCallback(() => {
+    if (!currentSlideId) return;
+    addTextToSlide({ slideId: currentSlideId });
+  }, [addTextToSlide, currentSlideId]);
+
+  const handleAddImage = useCallback(async () => {
+    if (!currentSlideId) return;
+
+    const picked = await pickImage();
+    if (!picked) return;
+
+    const src = await uploadImageToStorage(picked.file);
+
+    addImageToSlide({
+      slideId: currentSlideId,
+      src,
+      w: picked.width,
+      h: picked.height,
     });
-  };
+  }, [addImageToSlide, currentSlideId, pickImage]);
 
-  const handleAddImage = async (): Promise<void> => {
-    const id = select.selectedSlideIds[0];
-    if (!id) return;
+  const handleChangeBackgroundColor = useCallback(() => {
+    if (!currentSlideId) return;
 
-    try {
-      const picked = await pickImage();
-      if (!picked) return;
+    const input = colorInputRef.current;
+    if (!input) return;
 
-      addImageToSlide({
-        slideId: id,
-        src: picked.dataUrl,
-        w: picked.width,
-        h: picked.height,
-      });
-    } catch (e) {
-      console.error("Ошибка при выборе изображения: ", e);
-    }
-  };
-
-  const handleChangeBackgroundColor = async (): Promise<void> => {
-    const id = select.selectedSlideIds[0];
-    if (!id) return;
-
-    try {
-      const newColor = await pickColor();
-      if (!newColor) return;
+    const onChange = () => {
       updateSlideBackgroundColor({
-        slideId: id,
-        newColor,
+        slideId: currentSlideId,
+        newColor: input.value,
       });
-    } catch (e) {
-      console.error("Ошибка при выборе цвета фона: ", e);
-    }
-  };
+      input.removeEventListener("change", onChange);
+    };
+
+    input.addEventListener("change", onChange, { once: true });
+    input.click();
+  }, [colorInputRef, currentSlideId, updateSlideBackgroundColor]);
 
   return {
     handleCreateSlide,
