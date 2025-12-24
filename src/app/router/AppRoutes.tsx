@@ -12,7 +12,7 @@ export function AppRoutes() {
       <Route path="/editor" element={<PresentationMaker />} />
       <Route path="/editor/:presentationId" element={<PresentationMaker />} />
 
-      <Route path="*" element={<Navigate to="/my" replace />} />
+      <Route path="*" element={<Navigate to="/presentations" replace />} />
     </Routes>
   );
 }

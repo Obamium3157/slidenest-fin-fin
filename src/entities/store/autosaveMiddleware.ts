@@ -61,7 +61,7 @@ export const autosaveMiddleware: Middleware<object, RootState> = (store) => {
     try {
       await performSave();
     } catch (err) {
-      console.error("Appwrite autosave failed:", err);
+      console.error("Ошибка автосохранения в Appwrite:", err);
     } finally {
       inFlight = false;
       if (pending) {
