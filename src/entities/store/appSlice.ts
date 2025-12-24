@@ -56,8 +56,12 @@ export const bootstrapPresentation = createAsyncThunk<void, BootstrapArg>(
         presentation = await loadPresentationByPresentationId(id);
         window.localStorage.setItem(STORAGE_KEY, id);
         break;
-      } catch {
-        /* ... */
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(
+          `[presentation] ошибка при загрузке кандидата с id="${id}": ${msg}`,
+          err,
+        );
       }
     }
 
@@ -68,9 +72,17 @@ export const bootstrapPresentation = createAsyncThunk<void, BootstrapArg>(
           const id = list[0].presentationId;
           presentation = await loadPresentationByPresentationId(id);
           window.localStorage.setItem(STORAGE_KEY, id);
+        } else {
+          console.info(
+            "[presentation] listMyPresentations вернула пустой список",
+          );
         }
-      } catch {
-        /* ... */
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(
+          `[presentation] ошибка при загрузке резервного файла через listMyPresentations: ${msg}`,
+          err,
+        );
       }
     }
 
