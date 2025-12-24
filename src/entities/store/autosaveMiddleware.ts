@@ -1,73 +1,94 @@
 import type { Middleware } from "@reduxjs/toolkit";
 import { savePresentationToAppwrite } from "../../shared/lib/appwrite/repo/presentationRepo.ts";
 import type { RootState } from "./types.ts";
+import { getCurrentStatePresentation } from "./selectors.ts";
 
 const AUTOSAVE_DEBOUNCE_MS = 800;
 
-type ActionWithType = { type: string };
-function hasStringType(action: unknown): action is ActionWithType {
-  return (
-    typeof action === "object" &&
-    action !== null &&
-    "type" in action &&
-    typeof (action as { type?: unknown }).type === "string"
-  );
+function getActionType(action: unknown): string | null {
+  if (typeof action !== "object" || action === null) return null;
+  if (!("type" in action)) return null;
+
+  const maybeType = (action as { type?: unknown }).type;
+  return typeof maybeType === "string" ? maybeType : null;
 }
 
-export const autosaveMiddleware: Middleware<object, RootState> = (store) => {
-  let timer: number | null = null;
-  let saving = false;
-  let queued = false;
+function createDebouncedTrigger(fn: () => void, delayMs: number) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const flushSave = async () => {
-    if (saving) {
-      queued = true;
+  const cancel = () => {
+    if (timer !== null) {
+      globalThis.clearTimeout(timer);
+      timer = null;
+    }
+  };
+
+  const trigger = () => {
+    cancel();
+    timer = globalThis.setTimeout(() => {
+      timer = null;
+      fn();
+    }, delayMs);
+  };
+
+  return { trigger, cancel };
+}
+
+const shouldIgnoreActionType = (type: string) =>
+  type.startsWith("@@redux/") || type === "EDITOR/HYDRATE";
+
+export const autosaveMiddleware: Middleware<object, RootState> = (store) => {
+  let inFlight = false;
+  let pending = false;
+
+  const performSave = async () => {
+    const state = store.getState();
+    if (state.app.status !== "ready") return;
+
+    const current = getCurrentStatePresentation(state);
+    if (!current.id) return;
+
+    await savePresentationToAppwrite(current);
+  };
+
+  const trySave = async () => {
+    if (inFlight) {
+      pending = true;
       return;
     }
 
-    const state = store.getState();
-
-    if (state.app.status !== "ready") return;
-
-    const current = state.presentation.history.present;
-    if (!current.id) return;
-
+    inFlight = true;
     try {
-      saving = true;
-      await savePresentationToAppwrite(current);
+      await performSave();
     } catch (err) {
       console.error("Appwrite autosave failed:", err);
     } finally {
-      saving = false;
-      if (queued) {
-        queued = false;
-        scheduleSave();
+      inFlight = false;
+      if (pending) {
+        pending = false;
+        debounced.trigger();
       }
     }
   };
 
-  const scheduleSave = () => {
-    if (timer !== null) window.clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      timer = null;
-      void flushSave();
-    }, AUTOSAVE_DEBOUNCE_MS);
-  };
+  const debounced = createDebouncedTrigger(() => {
+    void trySave();
+  }, AUTOSAVE_DEBOUNCE_MS);
 
   return (next) => (action: unknown) => {
-    if (hasStringType(action) && action.type.startsWith("@@redux/")) {
-      return next(action);
+    const type = getActionType(action);
+    if (type && shouldIgnoreActionType(type)) {
+      return next(action as never);
     }
 
-    if (hasStringType(action) && action.type === "EDITOR/HYDRATE") {
-      return next(action);
+    const prev = getCurrentStatePresentation(store.getState());
+    const result = next(action as never);
+    const nextPres = getCurrentStatePresentation(store.getState());
+
+    if (prev !== nextPres) {
+      debounced.trigger();
     }
 
-    const prev = store.getState().presentation.history.present;
-    const result = next(action);
-    const nextPres = store.getState().presentation.history.present;
-
-    if (prev !== nextPres) scheduleSave();
     return result;
   };
 };
