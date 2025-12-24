@@ -1,17 +1,20 @@
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
 import { store } from "../entities/store";
-import { PresentationMaker } from "../pages/presentation/ui/PresentationMaker.tsx";
 import { UserProvider } from "../auth";
-import { AuthGate } from "../pages/auth/ui/AuthGate/AuthGate.tsx";
+import { AuthGate } from "../pages/auth/ui/AuthGate/AuthGate";
+import { AppRoutes } from "./router/AppRoutes";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(
-  <Provider store={store}>
-    <UserProvider>
-      <AuthGate>
-        <PresentationMaker />
-      </AuthGate>
-    </UserProvider>
-  </Provider>,
+  <BrowserRouter>
+    <Provider store={store}>
+      <UserProvider>
+        <AuthGate>
+          <AppRoutes />
+        </AuthGate>
+      </UserProvider>
+    </Provider>
+  </BrowserRouter>,
 );

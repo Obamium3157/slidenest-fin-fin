@@ -17,6 +17,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-redux": "^9.2.0",
+    "react-router-dom": "^7.11.0",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {

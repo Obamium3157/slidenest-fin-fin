@@ -1,5 +1,5 @@
 import { ID, Query } from "appwrite";
-import { storage, tablesDB } from "../appwrite.ts";
+import { account, storage, tablesDB } from "../appwrite.ts";
 import {
   APPWRITE_DATABASE_ID,
   APPWRITE_PRESENTATIONS_TABLE_ID,
@@ -32,6 +32,9 @@ type PresentationRow = {
 
 const MAX_APPWRITE_ID_LEN = 36;
 const APPWRITE_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,35}$/;
+
+const PREFS_PRESENTATION_IDS_KEY = "presentationIds";
+const MAX_QUERY_EQUAL_VALUES = 100;
 
 function toBase64Url(bytes: Uint8Array): string {
   let bin = "";
@@ -84,6 +87,70 @@ async function dataUrlToFile(
   return new File([blob], `${fallbackName}.${ext}`, {
     type: blob.type || "application/octet-stream",
   });
+}
+
+function isStringArray(v: unknown): v is string[] {
+  return Array.isArray(v) && v.every((x) => typeof x === "string");
+}
+
+function uniqStrings(ids: string[]): string[] {
+  const set = new Set<string>();
+  for (const id of ids) if (id) set.add(id);
+  return Array.from(set);
+}
+
+async function getPrefsObject(): Promise<Record<string, unknown>> {
+  const prefs = (await account.getPrefs()) as unknown;
+  if (prefs && typeof prefs === "object")
+    return prefs as Record<string, unknown>;
+  return {};
+}
+
+export async function getMyPresentationIds(): Promise<string[]> {
+  const prefs = await getPrefsObject();
+  const raw = prefs[PREFS_PRESENTATION_IDS_KEY];
+  if (!isStringArray(raw)) return [];
+  return uniqStrings(raw);
+}
+
+export async function addMyPresentationId(
+  presentationId: string,
+): Promise<string[]> {
+  const prefs = await getPrefsObject();
+  const current = isStringArray(prefs[PREFS_PRESENTATION_IDS_KEY])
+    ? (prefs[PREFS_PRESENTATION_IDS_KEY] as string[])
+    : [];
+
+  const next = uniqStrings([...current, presentationId]);
+
+  await account.updatePrefs({
+    prefs: {
+      ...prefs,
+      [PREFS_PRESENTATION_IDS_KEY]: next,
+    },
+  });
+
+  return next;
+}
+
+export async function removeMyPresentationId(
+  presentationId: string,
+): Promise<string[]> {
+  const prefs = await getPrefsObject();
+  const current = isStringArray(prefs[PREFS_PRESENTATION_IDS_KEY])
+    ? (prefs[PREFS_PRESENTATION_IDS_KEY] as string[])
+    : [];
+
+  const next = current.filter((id) => id !== presentationId);
+
+  await account.updatePrefs({
+    prefs: {
+      ...prefs,
+      [PREFS_PRESENTATION_IDS_KEY]: next,
+    },
+  });
+
+  return next;
 }
 
 export async function uploadImageToStorage(file: File): Promise<string> {
@@ -156,6 +223,12 @@ export async function savePresentationToAppwrite(
     },
   });
 
+  try {
+    await addMyPresentationId(prepared.id);
+  } catch {
+    /* ... */
+  }
+
   return { etag, rowId };
 }
 
@@ -184,7 +257,61 @@ export async function loadPresentationByPresentationId(
   return parseAndValidatePresentation(row.content, row.presentationId);
 }
 
+async function listPresentationsByIdsInternal(
+  presentationIds: string[],
+): Promise<PresentationMeta[]> {
+  const ids = uniqStrings(presentationIds);
+  if (ids.length === 0) return [];
+
+  const metas: PresentationMeta[] = [];
+
+  for (let i = 0; i < ids.length; i += MAX_QUERY_EQUAL_VALUES) {
+    const chunk = ids.slice(i, i + MAX_QUERY_EQUAL_VALUES);
+
+    const res = await tablesDB.listRows({
+      databaseId: APPWRITE_DATABASE_ID,
+      tableId: APPWRITE_PRESENTATIONS_TABLE_ID,
+      queries: [
+        Query.equal("presentationId", chunk),
+        Query.select(["$id", "$updatedAt", "title", "presentationId"]),
+        Query.limit(Math.min(chunk.length, 200)),
+      ],
+    });
+
+    const rows = (res.rows ?? []) as unknown as Array<
+      Pick<PresentationRow, "$id" | "$updatedAt" | "title" | "presentationId">
+    >;
+
+    for (const r of rows) {
+      metas.push({
+        rowId: r.$id,
+        presentationId: r.presentationId,
+        title: r.title ?? "",
+        updatedAt: r.$updatedAt,
+      });
+    }
+  }
+
+  metas.sort((a, b) =>
+    a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0,
+  );
+  return metas;
+}
+
 export async function listMyPresentations(
+  limit: number = 100,
+): Promise<PresentationMeta[]> {
+  const safeLimit = Math.max(1, Math.min(200, Math.floor(limit)));
+
+  const ids = await getMyPresentationIds();
+  if (ids.length === 0) return [];
+
+  const metas = await listPresentationsByIdsInternal(ids);
+
+  return metas.slice(0, safeLimit);
+}
+
+export async function listAllPresentations(
   limit: number = 100,
 ): Promise<PresentationMeta[]> {
   const safeLimit = Math.max(1, Math.min(200, Math.floor(limit)));

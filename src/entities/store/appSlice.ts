@@ -28,23 +28,33 @@ function selectionForPresentation(p: Presentation): Select {
     : { selectedSlideIds: [], selectedSlideObjIds: [] };
 }
 
-export const bootstrapPresentation = createAsyncThunk<void, void>(
+type BootstrapArg = {
+  presentationId?: string | null;
+};
+
+const STORAGE_KEY = "slidenest.activePresentationId";
+const URL_QUERY_KEY = "p";
+
+export const bootstrapPresentation = createAsyncThunk<void, BootstrapArg>(
   "app/bootstrapPresentation",
-  async (_arg, thunkApi) => {
+  async (arg, thunkApi) => {
+    const fromRoute = arg?.presentationId ?? null;
+
     const params = new URLSearchParams(window.location.search);
-    const fromUrl = params.get("p");
+    const fromUrl = params.get(URL_QUERY_KEY);
 
-    const storageKey = "slidenest.activePresentationId";
-    const fromLocal = window.localStorage.getItem(storageKey);
+    const fromLocal = window.localStorage.getItem(STORAGE_KEY);
 
-    const candidates = [fromUrl, fromLocal].filter((x): x is string => !!x);
+    const candidates = [fromRoute, fromUrl, fromLocal].filter(
+      (x): x is string => typeof x === "string" && x.length > 0,
+    );
 
     let presentation: Presentation | null = null;
 
     for (const id of candidates) {
       try {
         presentation = await loadPresentationByPresentationId(id);
-        window.localStorage.setItem(storageKey, id);
+        window.localStorage.setItem(STORAGE_KEY, id);
         break;
       } catch {
         /* ... */
@@ -52,17 +62,21 @@ export const bootstrapPresentation = createAsyncThunk<void, void>(
     }
 
     if (!presentation) {
-      const list = await listMyPresentations();
-      if (list.length > 0) {
-        const id = list[0].presentationId;
-        presentation = await loadPresentationByPresentationId(id);
-        window.localStorage.setItem(storageKey, id);
+      try {
+        const list = await listMyPresentations(100);
+        if (list.length > 0) {
+          const id = list[0].presentationId;
+          presentation = await loadPresentationByPresentationId(id);
+          window.localStorage.setItem(STORAGE_KEY, id);
+        }
+      } catch {
+        /* ... */
       }
     }
 
     if (!presentation) {
       presentation = createDefaultPresentation("Название презентации");
-      window.localStorage.setItem(storageKey, presentation.id);
+      window.localStorage.setItem(STORAGE_KEY, presentation.id);
 
       try {
         await savePresentationToAppwrite(presentation);

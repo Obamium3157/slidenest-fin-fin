@@ -29,6 +29,13 @@
   padding: 5px;
 }
 
+.logoLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
 .sideContainer {
     display: flex;
     gap: 10px;
