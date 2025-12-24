@@ -7,6 +7,7 @@ import {
 } from "../appwriteIds.ts";
 import type { Presentation } from "../../../../entities/presentation/model/types.ts";
 import type { SlideObj } from "../../../../entities/slide/model/types.ts";
+import { parseAndValidatePresentation } from "../../validation/presentationValidation.ts";
 
 export type SaveResult = {
   etag: string;
@@ -158,19 +159,6 @@ export async function savePresentationToAppwrite(
   return { etag, rowId };
 }
 
-function parsePresentation(
-  content: string,
-  expectedPresentationId?: string,
-): Presentation {
-  const parsed = JSON.parse(content) as Presentation;
-
-  if (expectedPresentationId) {
-    parsed.id = expectedPresentationId;
-  }
-
-  return parsed;
-}
-
 export async function loadPresentationByPresentationId(
   presentationId: string,
 ): Promise<Presentation> {
@@ -179,7 +167,7 @@ export async function loadPresentationByPresentationId(
     tableId: APPWRITE_PRESENTATIONS_TABLE_ID,
     queries: [
       Query.equal("presentationId", [presentationId]),
-      Query.select(["content", "presentationId", "title", "$id", "$updatedAt"]),
+      Query.select(["content", "presentationId", "$id", "$updatedAt"]),
       Query.limit(1),
     ],
   });
@@ -188,11 +176,12 @@ export async function loadPresentationByPresentationId(
     throw new Error(`Presentation not found: ${presentationId}`);
   }
 
-  const row = res.rows[0] as unknown as Pick<
-    PresentationRow,
-    "content" | "presentationId"
-  >;
-  return parsePresentation(row.content, row.presentationId);
+  const row = res.rows[0] as unknown as {
+    content: string;
+    presentationId: string;
+  };
+
+  return parseAndValidatePresentation(row.content, row.presentationId);
 }
 
 export async function listMyPresentations(
