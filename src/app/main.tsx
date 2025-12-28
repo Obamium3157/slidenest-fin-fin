@@ -5,6 +5,9 @@ import { store } from "../entities/store";
 import { UserProvider } from "../auth";
 import { AuthGate } from "../pages/auth/ui/AuthGate/AuthGate";
 import { AppRoutes } from "./router/AppRoutes";
+import { startAutosaveTimer } from "../entities/store/autosaveTimer.ts";
+
+store.dispatch(startAutosaveTimer());
 
 const root = createRoot(document.getElementById("root")!);
 root.render(
