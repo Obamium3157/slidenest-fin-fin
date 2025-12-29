@@ -1,0 +1,36 @@
+.playerRoot {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+}
+
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+}
+
+.backLink {
+    color: #007bff;
+    text-decoration: none;
+    font: var(--font-display-xsmall);
+}
+
+.hint {
+    font: var(--font-text-small);
+    opacity: 0.8;
+}
+
+.stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.scaled {
+    transform-origin: center;
+}

@@ -23,7 +23,11 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
   const { type, alt, onClick } = props;
 
   if (type === "slideShow") {
-    return <button className={styles.slideShowButton}>Слайд-шоу</button>;
+    return (
+      <button className={styles.slideShowButton} onClick={onClick} title={alt}>
+        Слайд-шоу
+      </button>
+    );
   }
 
   const icons: Record<string, string> = {

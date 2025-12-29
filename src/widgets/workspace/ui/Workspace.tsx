@@ -5,7 +5,12 @@ import { SlideView } from "../../slideView/ui/SlideView.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import type { Slide } from "../../../entities/slide/model/types.ts";
 
-export function Workspace() {
+type WorkspaceProps = {
+  mode?: "editor" | "player";
+};
+
+export function Workspace(props: WorkspaceProps) {
+  const { mode = "editor" } = props;
   const presentation = useAppSelector(
     (state) => state.presentation.history.present,
   );
@@ -20,8 +25,19 @@ export function Workspace() {
   }
 
   return (
-    <div className={styles.workspace}>
-      <SlideView slide={currentSlide} />
+    <div
+      className={[
+        styles.workspace,
+        mode === "player" ? styles.workspacePlayer : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <SlideView
+        slide={currentSlide}
+        readonly={mode === "player"}
+        style={mode === "player" ? { border: "none" } : undefined}
+      />
     </div>
   );
 }

@@ -1,18 +1,22 @@
+import * as React from "react";
+import { useEffect, useRef } from "react";
+
 import { AllSlideObjects } from "../../allSlideObjects/ui/AllSlideObjects.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
 
 import styles from "./SlideView.module.css";
-import { useEffect, useRef } from "react";
-import * as React from "react";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
 
 type SlideViewProps = {
   slide: Slide;
+  readonly?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
 export function SlideView(props: SlideViewProps) {
-  const { slide } = props;
+  const { slide, readonly = false, className, style } = props;
 
   const select = useAppSelector((state) => state.presentation.selection);
 
@@ -22,45 +26,39 @@ export function SlideView(props: SlideViewProps) {
   const slideRef = useRef<HTMLDivElement | null>(null);
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (e.defaultPrevented) {
-      return;
-    }
-    deselectSlideObjects({
-      objIds: select.selectedSlideObjIds,
-    });
+    if (readonly) return;
+    if (e.defaultPrevented) return;
+
+    deselectSlideObjects({ objIds: select.selectedSlideObjIds });
   };
 
   useEffect(() => {
+    if (readonly) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "Backspace": {
-          removeSlideObjects({
-            slideId: slide.id,
-            objIds: select.selectedSlideObjIds,
-          });
-          break;
-        }
-        default: {
-          break;
-        }
+      if (e.key === "Backspace") {
+        removeSlideObjects({
+          slideId: slide.id,
+          objIds: select.selectedSlideObjIds,
+        });
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [slide.id, select.selectedSlideObjIds, removeSlideObjects]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [readonly, removeSlideObjects, slide.id, select.selectedSlideObjIds]);
 
   const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
     e.preventDefault();
   };
+
   return (
     <div
       ref={slideRef}
-      className={styles.slide}
+      className={[styles.slide, className].filter(Boolean).join(" ")}
       style={{
         background: slide.backgroundColor.color,
+        ...style,
       }}
       onClick={handleBackgroundClick}
       onMouseDown={preventSelection}
@@ -68,22 +66,25 @@ export function SlideView(props: SlideViewProps) {
     >
       <AllSlideObjects
         slide={slide}
-        selectedObjectIds={select.selectedSlideObjIds}
-        onSelectObject={(id: string, isMultipleSelection: boolean) => {
-          if (!isMultipleSelection) {
-            deselectSlideObjects({
-              objIds: select.selectedSlideObjIds,
-            });
-          }
-          addSlideObjToSelection({
-            objId: id,
-          });
-        }}
-        onDeselectObject={(id: string) => {
-          deselectSlideObjects({
-            objIds: [id],
-          });
-        }}
+        readonly={readonly}
+        selectedObjectIds={readonly ? [] : select.selectedSlideObjIds}
+        onSelectObject={
+          readonly
+            ? undefined
+            : (id: string, isMultipleSelection: boolean) => {
+                if (!isMultipleSelection) {
+                  deselectSlideObjects({ objIds: select.selectedSlideObjIds });
+                }
+                addSlideObjToSelection({ objId: id });
+              }
+        }
+        onDeselectObject={
+          readonly
+            ? undefined
+            : (id: string) => {
+                deselectSlideObjects({ objIds: [id] });
+              }
+        }
       />
     </div>
   );

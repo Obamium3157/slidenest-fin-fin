@@ -28,6 +28,7 @@ export function PresentationMaker() {
 
   const status = useAppSelector((s) => s.app.status);
   const error = useAppSelector((s) => s.app.error);
+  const activePresId = useAppSelector((s) => s.presentation.history.present.id);
 
   const { presentationId } = useParams<RouteParams>();
 
@@ -50,6 +51,16 @@ export function PresentationMaker() {
     return <div>Ошибка загрузки: {error}</div>;
   }
 
+  const openSlideShow = () => {
+    const id = presentationId ?? activePresId;
+    if (!id) return;
+    window.open(
+      `/player/${encodeURIComponent(id)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
+
   return (
     <div className={styles.mainField}>
       <div className={styles.headerPanel}>
@@ -69,7 +80,11 @@ export function PresentationMaker() {
           </div>
 
           <div className={styles.sideContainer}>
-            <InterfaceButtonView type={"slideShow"} alt={"Слайд-шоу"} />
+            <InterfaceButtonView
+              type={"slideShow"}
+              alt={"Слайд-шоу"}
+              onClick={openSlideShow}
+            />
             <AvatarView />
           </div>
         </div>

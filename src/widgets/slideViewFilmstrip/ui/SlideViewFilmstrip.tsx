@@ -101,7 +101,7 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
         onPointerDown={onPointerDown}
       >
         <div style={innerStyle} className={innerClassName}>
-          <AllSlideObjects slide={slide} />
+          <AllSlideObjects slide={slide} readonly />
         </div>
       </div>
     </div>

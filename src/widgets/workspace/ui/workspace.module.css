@@ -1,6 +1,11 @@
 .workspace {
-  display: flex;
-  flex-direction: column;
-  width: 70vw;
-  align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    width: 70vw;
+    align-items: flex-start;
+}
+
+.workspacePlayer {
+    width: auto;
+    align-items: center;
 }

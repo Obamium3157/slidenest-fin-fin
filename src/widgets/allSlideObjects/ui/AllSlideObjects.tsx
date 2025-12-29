@@ -4,9 +4,11 @@ import {
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import { SlideObjView } from "../../slideObject/ui/SlideObjView.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
+import { SlideObjStaticView } from "../../slideObject/SlideObjStaticView.tsx";
 
 type SlideObjArrayProps = {
   slide: Slide;
+  readonly?: boolean;
   selectedObjectIds?: string[] | null;
   onSelectObject?: (id: string, isMultipleSelection: boolean) => void;
   onDeselectObject?: (id: string) => void;
@@ -15,6 +17,7 @@ type SlideObjArrayProps = {
 export function AllSlideObjects(props: SlideObjArrayProps) {
   const {
     slide,
+    readonly = false,
     selectedObjectIds = null,
     onSelectObject,
     onDeselectObject,
@@ -29,6 +32,10 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
         const obj = getOrderedMapElementById(currentSlideObjects, id);
         if (!obj) {
           return null;
+        }
+
+        if (readonly) {
+          return <SlideObjStaticView key={idx} slideObj={obj} />;
         }
         return (
           <SlideObjView
