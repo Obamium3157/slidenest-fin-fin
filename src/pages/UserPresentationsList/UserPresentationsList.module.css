@@ -1,0 +1,123 @@
+.page {
+    padding: 24px 32px;
+}
+
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sideContainer {
+    display: flex;
+    align-items: center;
+}
+
+.actionButton {
+    height: 36px;
+    font: var(--font-display-xxxsmall);
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 2px solid #222;
+    background: rgb(255 255 255 / 90%);
+    cursor: pointer;
+}
+
+.actionButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error {
+    margin-top: 12px;
+    color: crimson;
+}
+
+.content {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.statusText {
+    opacity: 0.85;
+}
+
+.gridScroller {
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.grid {
+    --tile-w: 250px;
+    --tile-h: 140px;
+
+    display: grid;
+    grid-template-columns: repeat(5, var(--tile-w));
+    gap: 16px;
+    width: max-content;
+}
+
+.tile {
+    width: var(--tile-w);
+    border-radius: 14px;
+    border: 1px solid rgb(0 0 0 / 18%);
+    background: rgb(255 255 255 / 60%);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition:
+            transform 120ms ease,
+            box-shadow 120ms ease,
+            border-color 120ms ease;
+}
+
+.tile:hover {
+    box-shadow: 0 10px 24px rgb(0 0 0 / 12%);
+    border-color: rgb(0 0 0 / 28%);
+}
+
+.preview {
+    width: var(--tile-w);
+    height: var(--tile-h);
+    overflow: hidden;
+    position: relative;
+}
+
+.previewInner {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.previewPlaceholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+            135deg,
+            rgb(0 0 0 / 6%),
+            rgb(0 0 0 / 2%)
+    );
+}
+
+.title {
+    padding: 10px 12px 12px;
+    font: var(--font-display-xxxsmall);
+    font-weight: 600;
+    min-height: 38px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    border-top: 1px solid rgb(0 0 0 / 18%);
+    background: rgb(255 255 255 / 70%);
+}

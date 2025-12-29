@@ -1,19 +1,43 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth";
 import {
   listMyPresentations,
   type PresentationMeta,
+  loadPresentationByPresentationId,
   savePresentationToAppwrite,
 } from "../../shared/lib/appwrite/repo/presentationRepo.ts";
 import { createDefaultPresentation } from "../../entities/presentation/model/createDefaultPresentation.ts";
 
+import type { Presentation } from "../../entities/presentation/model/types.ts";
+import type { Slide } from "../../entities/slide/model/types.ts";
+import { AllSlideObjects } from "../../widgets/allSlideObjects/ui/AllSlideObjects.tsx";
+import { AvatarView } from "../../widgets/avatarView/ui/AvatarView.tsx";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../shared/lib/constants/constants.ts";
+
+import styles from "./UserPresentationsList.module.css";
+
 type LoadState = "idle" | "loading" | "error";
 
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString();
+const PREVIEW_SCALE_FACTOR = 5;
+const PREVIEW_W = SLIDE_WIDTH / PREVIEW_SCALE_FACTOR;
+const PREVIEW_H = SLIDE_HEIGHT / PREVIEW_SCALE_FACTOR;
+const PREVIEW_FETCH_CONCURRENCY = 6;
+
+function getFirstSlide(p: Presentation): Slide | null {
+  const firstId = p.slides.order[0];
+  if (!firstId) return null;
+  return p.slides.collection[firstId] ?? null;
 }
 
 export function UserPresentationsList() {
@@ -25,6 +49,12 @@ export function UserPresentationsList() {
   const [creating, setCreating] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
+  const [firstSlides, setFirstSlides] = useState<Record<string, Slide | null>>(
+    {},
+  );
+  const previewsLoadedRef = useRef(new Set<string>());
+  const previewsInFlightRef = useRef(new Set<string>());
+
   const canWork = useMemo(() => !authLoading && !!user, [authLoading, user]);
 
   const load = useCallback(async () => {
@@ -32,7 +62,7 @@ export function UserPresentationsList() {
     setState("loading");
     setErrorText(null);
     try {
-      const metas = await listMyPresentations(200);
+      const metas = await listMyPresentations();
       setItems(metas);
       setState("idle");
     } catch (e) {
@@ -44,6 +74,55 @@ export function UserPresentationsList() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    let cancelled = false;
+    const queue = items
+      .map((x) => x.presentationId)
+      .filter(
+        (id) =>
+          !previewsLoadedRef.current.has(id) &&
+          !previewsInFlightRef.current.has(id),
+      );
+
+    if (queue.length === 0) return;
+
+    const runWorker = async () => {
+      while (!cancelled && queue.length > 0) {
+        const id = queue.shift();
+        if (!id) continue;
+        if (previewsLoadedRef.current.has(id)) continue;
+        if (previewsInFlightRef.current.has(id)) continue;
+
+        previewsInFlightRef.current.add(id);
+        try {
+          const p = await loadPresentationByPresentationId(id);
+          const slide = getFirstSlide(p);
+          if (!cancelled) {
+            setFirstSlides((prev) => ({ ...prev, [id]: slide }));
+          }
+        } catch {
+          if (!cancelled) {
+            setFirstSlides((prev) => ({ ...prev, [id]: null }));
+          }
+        } finally {
+          previewsInFlightRef.current.delete(id);
+          previewsLoadedRef.current.add(id);
+        }
+      }
+    };
+
+    const workers = Array.from({ length: PREVIEW_FETCH_CONCURRENCY }, () =>
+      runWorker(),
+    );
+    void Promise.all(workers);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
 
   const onCreate = useCallback(async () => {
     if (!canWork) return;
@@ -66,66 +145,90 @@ export function UserPresentationsList() {
   if (authLoading) return <div>Загрузка...</div>;
   if (!user) return <div>Нужно войти в аккаунт.</div>;
 
-  return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={onCreate} disabled={creating}>
-          {creating ? "Создание..." : "Создать новую презентацию"}
-        </button>
+  const gridStyle = {
+    ["--tile-w" as string]: `${PREVIEW_W}px`,
+    ["--tile-h" as string]: `${PREVIEW_H}px`,
+  } as CSSProperties;
 
-        <button
-          onClick={() => void load()}
-          disabled={state === "loading" || creating}
-        >
-          Обновить
-        </button>
+  return (
+    <div className={styles.page}>
+      <div className={styles.topBar}>
+        <div className={styles.actions}>
+          <button
+            className={styles.actionButton}
+            onClick={onCreate}
+            disabled={creating}
+          >
+            {creating ? "Создание..." : "Создать новую презентацию"}
+          </button>
+
+          <button
+            className={styles.actionButton}
+            onClick={() => void load()}
+            disabled={state === "loading" || creating}
+          >
+            Обновить
+          </button>
+        </div>
+
+        <div className={styles.sideContainer}>
+          <AvatarView />
+        </div>
       </div>
 
       {errorText && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ color: "crimson" }}>{errorText}</div>
+        <div className={styles.error} role="alert">
+          {errorText}
         </div>
       )}
 
-      <div style={{ marginTop: 16 }}>
+      <div className={styles.content}>
         {state === "loading" ? (
-          <div>Загрузка списка...</div>
+          <div className={styles.statusText}>Загрузка списка...</div>
         ) : items.length === 0 ? (
-          <div>У вас пока нет презентаций.</div>
+          <div className={styles.statusText}>У вас пока нет презентаций.</div>
         ) : (
-          <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-            }}
-          >
-            {items.map((p) => (
-              <li
-                key={p.presentationId}
-                style={{
-                  border: "1px solid #222",
-                  borderRadius: 10,
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>
-                  <Link to={`/editor/${p.presentationId}`}>
-                    {p.title || "Без названия"}
+          <div className={styles.gridScroller}>
+            <div className={styles.grid} style={gridStyle}>
+              {items.map((p) => {
+                const slide = firstSlides[p.presentationId];
+                return (
+                  <Link
+                    key={p.presentationId}
+                    to={`/editor/${p.presentationId}`}
+                    className={styles.tile}
+                  >
+                    <div
+                      className={styles.preview}
+                      style={{
+                        background: slide?.backgroundColor?.color ?? "#ffffff",
+                      }}
+                    >
+                      {slide ? (
+                        <div
+                          className={styles.previewInner}
+                          style={{
+                            width: SLIDE_WIDTH,
+                            height: SLIDE_HEIGHT,
+                            transform: `scale(${1 / PREVIEW_SCALE_FACTOR})`,
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          <AllSlideObjects slide={slide} readonly />
+                        </div>
+                      ) : (
+                        <div className={styles.previewPlaceholder} />
+                      )}
+                    </div>
+
+                    <div className={styles.title}>
+                      {p.title || "Без названия"}
+                    </div>
                   </Link>
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
-                  id: {p.presentationId}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.85 }}>
-                  обновлено: {formatDateTime(p.updatedAt)}
-                </div>
-              </li>
-            ))}
-          </ul>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
     </div>

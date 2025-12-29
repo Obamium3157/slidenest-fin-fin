@@ -299,7 +299,7 @@ async function listPresentationsByIdsInternal(
 }
 
 export async function listMyPresentations(
-  limit: number = 100,
+  limit: number = 200,
 ): Promise<PresentationMeta[]> {
   const safeLimit = Math.max(1, Math.min(200, Math.floor(limit)));
 
@@ -309,31 +309,4 @@ export async function listMyPresentations(
   const metas = await listPresentationsByIdsInternal(ids);
 
   return metas.slice(0, safeLimit);
-}
-
-export async function listAllPresentations(
-  limit: number = 100,
-): Promise<PresentationMeta[]> {
-  const safeLimit = Math.max(1, Math.min(200, Math.floor(limit)));
-
-  const res = await tablesDB.listRows({
-    databaseId: APPWRITE_DATABASE_ID,
-    tableId: APPWRITE_PRESENTATIONS_TABLE_ID,
-    queries: [
-      Query.orderDesc("$updatedAt"),
-      Query.select(["$id", "$updatedAt", "title", "presentationId"]),
-      Query.limit(safeLimit),
-    ],
-  });
-
-  const rows = (res.rows ?? []) as unknown as Array<
-    Pick<PresentationRow, "$id" | "$updatedAt" | "title" | "presentationId">
-  >;
-
-  return rows.map((r) => ({
-    rowId: r.$id,
-    presentationId: r.presentationId,
-    title: r.title ?? "",
-    updatedAt: r.$updatedAt,
-  }));
 }

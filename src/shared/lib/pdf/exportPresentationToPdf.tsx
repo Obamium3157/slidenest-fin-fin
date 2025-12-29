@@ -97,7 +97,7 @@ export async function exportPresentationToPdf(
 
   if (hadImageFailures) {
     console.warn(
-      "PDF export: some images could not be fetched as blobs; check Appwrite CORS/platform settings and file permissions.",
+      "PDF export: некоторые изображения не удалось загрузить в виде двоичных файлов",
     );
   }
 }
