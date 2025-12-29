@@ -7,5 +7,6 @@ export type InterfaceButtonType =
   | "newSlide"
   | "removeSlide"
   | "changeBackground"
+  | "exportPdf"
   | "slideShow"
   | "hideUpperPanel";

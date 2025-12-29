@@ -1,14 +1,20 @@
 import styles from "./toolbar.module.css";
 import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonView.tsx";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
+import { exportPresentationToPdf } from "../../../shared/lib/pdf/exportPresentationToPdf.tsx";
 
 export function Toolbar() {
   const { undo, redo } = useAppActions();
 
   const select = useAppSelector((state) => state.presentation.selection);
+  const presentation = useAppSelector(
+    (state) => state.presentation.history.present,
+  );
+
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const colorInputRef = useRef<HTMLInputElement | null>(null);
@@ -47,6 +53,19 @@ export function Toolbar() {
     };
   }, [undo, redo]);
 
+  const handleExportPdf = useCallback(async () => {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      await exportPresentationToPdf(presentation);
+    } catch (e) {
+      console.error(e);
+      alert("Не удалось экспортировать PDF. Проверьте консоль браузера.");
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [exportingPdf, presentation]);
+
   return (
     <>
       <div className={styles.toolbar}>
@@ -81,6 +100,11 @@ export function Toolbar() {
           />
         </div>
         <div className={styles.buttonsWrapper}>
+          <InterfaceButtonView
+            type={"exportPdf"}
+            alt={exportingPdf ? "Экспорт PDF..." : "Экспорт в PDF"}
+            onClick={handleExportPdf}
+          />
           <InterfaceButtonView type={"hideUpperPanel"} alt={"Скрыть меню"} />
         </div>
       </div>

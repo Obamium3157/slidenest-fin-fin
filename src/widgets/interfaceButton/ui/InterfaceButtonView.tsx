@@ -9,6 +9,7 @@ import textField from "../assets/tabler/forms.svg";
 import img from "../assets/tabler/photo-down.svg";
 import changeBackground from "../assets/tabler/background.svg";
 import hideUpperPanel from "../assets/tabler/chevron-up.svg";
+import exportPdf from "../assets/tabler/file-type-pdf.svg";
 
 import styles from "./interfaceButtonView.module.css";
 import defaultFont from "../../../shared/ui/defaultFont/defaultFont.module.css";
@@ -39,6 +40,7 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
     newSlide: plus,
     removeSlide: trash,
     changeBackground,
+    exportPdf,
     hideUpperPanel,
   };
 
