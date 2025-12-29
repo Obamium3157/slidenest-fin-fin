@@ -6,6 +6,10 @@ import { useRef, useState } from "react";
 import * as React from "react";
 import { useAppSelector } from "../../store/hooks.ts";
 import { useAppActions } from "../../store/actions.ts";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../../shared/lib/constants/constants.ts";
 
 type SlideDragAndDropArgs = {
   slide: Slide;
@@ -86,9 +90,19 @@ export function useSlideObjDragAndDrop(args: SlideDragAndDropArgs) {
       const updates: Record<string, Rect> = {};
       for (const id of ids) {
         const start = startMap[id];
+        let nextX = Math.round(start.x + dx);
+        let nextY = Math.round(start.y + dy);
+
+        const maxX = Math.max(0, SLIDE_WIDTH - start.w);
+        const maxY = Math.max(0, SLIDE_HEIGHT - start.h);
+        if (nextX < 0) nextX = 0;
+        if (nextY < 0) nextY = 0;
+        if (nextX > maxX) nextX = maxX;
+        if (nextY > maxY) nextY = maxY;
+
         updates[id] = {
-          x: Math.round(start.x + dx),
-          y: Math.round(start.y + dy),
+          x: nextX,
+          y: nextY,
           w: start.w,
           h: start.h,
         };

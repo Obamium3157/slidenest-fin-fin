@@ -18,6 +18,7 @@ import {
   useAppSelector,
 } from "../../../entities/store/hooks.ts";
 import { bootstrapPresentation } from "../../../entities/store/appSlice.ts";
+import { deselectSlideObjects } from "../../../entities/store/selectionSlice.ts";
 
 type RouteParams = {
   presentationId?: string;
@@ -29,6 +30,9 @@ export function PresentationMaker() {
   const status = useAppSelector((s) => s.app.status);
   const error = useAppSelector((s) => s.app.error);
   const activePresId = useAppSelector((s) => s.presentation.history.present.id);
+  const selectedObjIds = useAppSelector(
+    (s) => s.presentation.selection.selectedSlideObjIds,
+  );
 
   const { presentationId } = useParams<RouteParams>();
 
@@ -42,6 +46,29 @@ export function PresentationMaker() {
 
     void dispatch(bootstrapPresentation({ presentationId: nextId }));
   }, [dispatch, presentationId]);
+
+  useEffect(() => {
+    if (selectedObjIds.length === 0) return;
+
+    const onPointerDownCapture = (e: PointerEvent) => {
+      if (selectedObjIds.length === 0) return;
+
+      const target = e.target as Element | null;
+      if (!target) return;
+
+      const isInsideSlide = Boolean(
+        target.closest?.("[data-slide-canvas='true']"),
+      );
+      if (isInsideSlide) return;
+
+      dispatch(deselectSlideObjects({ objIds: selectedObjIds }));
+    };
+
+    window.addEventListener("pointerdown", onPointerDownCapture, true);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDownCapture, true);
+    };
+  }, [dispatch, selectedObjIds]);
 
   if (status === "loading" || status === "idle") {
     return <div>Загрузка презентации...</div>;

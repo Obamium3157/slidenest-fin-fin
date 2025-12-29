@@ -36,7 +36,18 @@ export function SlideView(props: SlideViewProps) {
     if (readonly) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const isEditable =
+        !!t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.tagName === "SELECT" ||
+          t.isContentEditable ||
+          Boolean(t.closest?.("[contenteditable='true']")));
+
       if (e.key === "Backspace") {
+        if (isEditable) return;
+        if (select.selectedSlideObjIds.length === 0) return;
         removeSlideObjects({
           slideId: slide.id,
           objIds: select.selectedSlideObjIds,
@@ -56,6 +67,7 @@ export function SlideView(props: SlideViewProps) {
     <div
       ref={slideRef}
       className={[styles.slide, className].filter(Boolean).join(" ")}
+      data-slide-canvas="true"
       style={{
         background: slide.backgroundColor.color,
         ...style,

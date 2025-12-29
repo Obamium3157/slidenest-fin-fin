@@ -28,18 +28,18 @@ export function AllSlideObjects(props: SlideObjArrayProps) {
 
   return (
     <>
-      {currentSlideObjectsOrder.map((id, idx) => {
+      {currentSlideObjectsOrder.map((id) => {
         const obj = getOrderedMapElementById(currentSlideObjects, id);
         if (!obj) {
           return null;
         }
 
         if (readonly) {
-          return <SlideObjStaticView key={idx} slideObj={obj} />;
+          return <SlideObjStaticView key={id} slideObj={obj} />;
         }
         return (
           <SlideObjView
-            key={idx}
+            key={id}
             slide={slide}
             slideObj={obj}
             isSelected={selectedObjectIds?.includes(obj.id)}

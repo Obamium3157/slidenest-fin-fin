@@ -91,8 +91,8 @@ export function SlideViewFilmstrip(props: SlideViewFilmstripProps) {
           height: outerHeight,
           opacity: isDragging ? 0.6 : 1,
           border: isSelected
-            ? DEFAULT_SLIDE_FILMSTRIP_SEPARATOR_BORDER
-            : SELECTED_SLIDE_FILMSTRIP_SEPARATOR_BORDER,
+            ? SELECTED_SLIDE_FILMSTRIP_SEPARATOR_BORDER
+            : DEFAULT_SLIDE_FILMSTRIP_SEPARATOR_BORDER,
           position: "relative",
         }}
         onClick={(e) => onFilmstripSlideClick(e)}
