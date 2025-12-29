@@ -133,26 +133,6 @@ export async function addMyPresentationId(
   return next;
 }
 
-export async function removeMyPresentationId(
-  presentationId: string,
-): Promise<string[]> {
-  const prefs = await getPrefsObject();
-  const current = isStringArray(prefs[PREFS_PRESENTATION_IDS_KEY])
-    ? (prefs[PREFS_PRESENTATION_IDS_KEY] as string[])
-    : [];
-
-  const next = current.filter((id) => id !== presentationId);
-
-  await account.updatePrefs({
-    prefs: {
-      ...prefs,
-      [PREFS_PRESENTATION_IDS_KEY]: next,
-    },
-  });
-
-  return next;
-}
-
 export async function uploadImageToStorage(file: File): Promise<string> {
   const created = await storage.createFile({
     bucketId: APPWRITE_STORAGE_BUCKET_ID,
