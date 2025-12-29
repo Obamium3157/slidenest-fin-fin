@@ -1,6 +1,7 @@
 import type { AppThunk, RootState } from "./types.ts";
 import { getCurrentStatePresentation } from "./selectors.ts";
 import { savePresentationToAppwrite } from "../../shared/lib/appwrite/repo/presentationRepo.ts";
+import { ROUTES } from "../../app/router/routes.ts";
 
 const AUTOSAVE_INTERVAL_MS = 800;
 
@@ -14,7 +15,7 @@ const saveGate = {
 };
 
 function isEditorRouteOpen(): boolean {
-  return window.location.pathname.startsWith("/editor/");
+  return window.location.pathname.startsWith(`${ROUTES.EDITOR}/`);
 }
 
 function canAutosave(state: RootState): boolean {

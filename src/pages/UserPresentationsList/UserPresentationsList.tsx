@@ -6,7 +6,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth";
 import {
   listMyPresentations,
@@ -19,13 +19,14 @@ import { createDefaultPresentation } from "../../entities/presentation/model/cre
 import type { Presentation } from "../../entities/presentation/model/types.ts";
 import type { Slide } from "../../entities/slide/model/types.ts";
 import { AllSlideObjects } from "../../widgets/allSlideObjects/ui/AllSlideObjects.tsx";
-import { LogoutButton } from "../../widgets/logoutButton/ui/LogoutButton.tsx";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
 } from "../../shared/lib/constants/constants.ts";
+import { ROUTES } from "../../app/router/routes.ts";
 
 import styles from "./UserPresentationsList.module.css";
+import { LogoutButton } from "../../widgets/logoutButton/ui/LogoutButton.tsx";
 
 type LoadState = "idle" | "loading" | "error";
 
@@ -134,7 +135,7 @@ export function UserPresentationsList() {
       const p = createDefaultPresentation();
       await savePresentationToAppwrite(p);
       await load();
-      navigate(`/editor/${p.id}`);
+      navigate(`${ROUTES.EDITOR}/${p.id}`);
     } catch (e) {
       setErrorText(e instanceof Error ? e.message : String(e));
     } finally {
@@ -143,7 +144,8 @@ export function UserPresentationsList() {
   }, [canWork, load, navigate]);
 
   if (authLoading) return <div>Загрузка...</div>;
-  if (!user) return <div>Нужно войти в аккаунт.</div>;
+
+  if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
 
   const gridStyle = {
     ["--tile-w" as string]: `${PREVIEW_W}px`,
@@ -195,7 +197,7 @@ export function UserPresentationsList() {
                 return (
                   <Link
                     key={p.presentationId}
-                    to={`/editor/${p.presentationId}`}
+                    to={`${ROUTES.EDITOR}/${p.presentationId}`}
                     className={styles.tile}
                   >
                     <div

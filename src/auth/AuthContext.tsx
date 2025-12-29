@@ -3,6 +3,11 @@ import { account } from "../shared/lib/appwrite/appwrite.ts";
 import { AuthContext } from "./types.ts";
 import type { AppwriteUser } from "../shared/types/auth/types.ts";
 
+function getAppwriteCode(e: unknown): number | null {
+  const code = (e as { code?: unknown } | null)?.code;
+  return typeof code === "number" ? code : null;
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppwriteUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -11,8 +16,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const acc = await account.get();
       setUser(acc);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -20,7 +24,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    refreshUser().then();
+    void refreshUser();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -36,7 +40,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
-
     try {
       await account.create({
         userId: "unique()",
@@ -56,9 +59,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setLoading(true);
     try {
-      account.deleteSessions().then();
-      setUser(null);
+      try {
+        await account.deleteSessions();
+      } catch (e) {
+        const code = getAppwriteCode(e);
+        if (code !== 401 && code !== 403) {
+          console.warn("logout: Appwrite error:", e);
+        }
+      }
     } finally {
+      setUser(null);
       setLoading(false);
     }
   };

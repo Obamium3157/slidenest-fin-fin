@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../auth";
 import { LoginForm } from "../Forms/LoginForm.tsx";
 import styles from "../AuthGate/AuthGate.module.css";
+import { ROUTES } from "../../../../app/router/routes.ts";
 
 type LocationState = {
   from?: { pathname?: string };
@@ -19,13 +20,13 @@ export function LoginPage() {
 
     const state = location.state as LocationState | null;
     const from = state?.from?.pathname;
-    navigate(from ?? "/presentations", { replace: true });
+    navigate(from ?? ROUTES.PRESENTATIONS, { replace: true });
   }, [user, loading, location.state, navigate]);
 
   return (
     <div className={styles.authContainer}>
       <div className={styles.authContentContainer} aria-busy={loading}>
-        <LoginForm onRedirectClick={() => navigate("/register")} />
+        <LoginForm onRedirectClick={() => navigate(ROUTES.REGISTER)} />
       </div>
 
       {loading && (

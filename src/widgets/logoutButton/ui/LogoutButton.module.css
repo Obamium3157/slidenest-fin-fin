@@ -1,4 +1,4 @@
-.avatar {
+.logoutButton {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -10,12 +10,12 @@
     transition: background-color 0.15s ease-in-out;
 }
 
-.avatar:hover {
+.logoutButton:hover {
     cursor: pointer;
     background-color: rgb(0 0 0 / 8%);
 }
 
-.userIcon {
+.logoutIcon {
     width: 30px;
     height: 30px;
 }

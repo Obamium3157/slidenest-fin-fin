@@ -19,6 +19,7 @@ import {
 } from "../../../entities/store/hooks.ts";
 import { bootstrapPresentation } from "../../../entities/store/appSlice.ts";
 import { deselectSlideObjects } from "../../../entities/store/selectionSlice.ts";
+import { ROUTES } from "../../../app/router/routes.ts";
 
 type RouteParams = {
   presentationId?: string;
@@ -35,12 +36,10 @@ export function PresentationMaker() {
   );
 
   const { presentationId } = useParams<RouteParams>();
-
   const lastRequestedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const nextId = presentationId ?? null;
-
     if (lastRequestedIdRef.current === nextId) return;
     lastRequestedIdRef.current = nextId;
 
@@ -82,7 +81,7 @@ export function PresentationMaker() {
     const id = presentationId ?? activePresId;
     if (!id) return;
     window.open(
-      `/player/${encodeURIComponent(id)}`,
+      `${ROUTES.PLAYER}/${encodeURIComponent(id)}`,
       "_blank",
       "noopener,noreferrer",
     );
@@ -94,7 +93,7 @@ export function PresentationMaker() {
         <div className={styles.titleAndInterfaceWrapper}>
           <div className={styles.iconAndInterfaceWrapper}>
             <Link
-              to={"/presentations"}
+              to={ROUTES.PRESENTATIONS}
               aria-label={"Перейти на главную"}
               className={styles.logoLink}
             >
