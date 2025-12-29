@@ -8,7 +8,7 @@ import { Workspace } from "../../../widgets/workspace/ui/Workspace.tsx";
 import { Toolbar } from "../../../widgets/toolbar/ui/Toolbar.tsx";
 import { InterfaceButtonView } from "../../../widgets/interfaceButton/ui/InterfaceButtonView.tsx";
 import { Title } from "../../../widgets/title/ui/Title.tsx";
-import { AvatarView } from "../../../widgets/avatarView/ui/AvatarView.tsx";
+import { LogoutButton } from "../../../widgets/logoutButton/ui/LogoutButton.tsx";
 
 import styles from "./presentationMaker.module.css";
 import appIcon from "../assets/appicon.svg";
@@ -112,7 +112,7 @@ export function PresentationMaker() {
               alt={"Слайд-шоу"}
               onClick={openSlideShow}
             />
-            <AvatarView />
+            <LogoutButton />
           </div>
         </div>
 

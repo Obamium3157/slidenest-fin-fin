@@ -19,7 +19,7 @@ import { createDefaultPresentation } from "../../entities/presentation/model/cre
 import type { Presentation } from "../../entities/presentation/model/types.ts";
 import type { Slide } from "../../entities/slide/model/types.ts";
 import { AllSlideObjects } from "../../widgets/allSlideObjects/ui/AllSlideObjects.tsx";
-import { AvatarView } from "../../widgets/avatarView/ui/AvatarView.tsx";
+import { LogoutButton } from "../../widgets/logoutButton/ui/LogoutButton.tsx";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
@@ -172,7 +172,7 @@ export function UserPresentationsList() {
         </div>
 
         <div className={styles.sideContainer}>
-          <AvatarView />
+          <LogoutButton />
         </div>
       </div>
 
