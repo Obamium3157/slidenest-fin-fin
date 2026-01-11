@@ -10,6 +10,8 @@ export const hydrateEditor = createAction<{
   selection: Select;
 }>("EDITOR/HYDRATE");
 
+export const resetEditor = createAction("EDITOR/RESET");
+
 type History<S> = {
   past: S[];
   present: S;
@@ -72,6 +74,10 @@ export function createUndoableReducer(
   };
 
   return (state = initialState, action) => {
+    if (resetEditor.match(action)) {
+      return initialState;
+    }
+
     if (hydrateEditor.match(action)) {
       return {
         history: createHistory(action.payload.presentation),
