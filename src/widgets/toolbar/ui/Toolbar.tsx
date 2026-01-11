@@ -71,7 +71,7 @@ export function Toolbar() {
 
   return (
     <>
-      <div className={styles.toolbar}>
+      <div className={styles.toolbar} data-toolbar-root="1">
         <div className={styles.buttonsWrapper}>
           <InterfaceButtonView
             type={"newSlide"}

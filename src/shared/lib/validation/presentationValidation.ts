@@ -55,13 +55,11 @@ const slideTextSchema = {
     id: { type: "string" },
     type: { const: "text" },
     contentHtml: { type: "string" },
-    text: { type: "string" },
     dir: textDirSchema,
     rect: rectSchema,
     font: fontSchema,
   },
-  required: ["id", "type", "rect", "font"],
-  anyOf: [{ required: ["contentHtml"] }, { required: ["text"] }],
+  required: ["id", "type", "rect", "font", "contentHtml"],
   additionalProperties: false,
 } as const;
 

@@ -48,6 +48,14 @@ export function SlideTextEditor({
 
   useEffect(() => {
     if (!editor) return;
+    const id = requestAnimationFrame(() => {
+      editor.commands.focus("end");
+    });
+    return () => cancelAnimationFrame(id);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
     const d = dir ?? "auto";
     editor.view.dom.setAttribute("dir", d);
     richTextController.notify();
@@ -71,16 +79,26 @@ export function SlideTextEditor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        editor?.commands.focus();
+        editor?.commands.selectAll();
+        return;
+      }
       if (e.key === "Escape") onExit();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onExit]);
+  }, [editor, onExit]);
 
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
       const root = rootRef.current;
       if (!root) return;
+
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.('[data-toolbar-root="1"]')) return;
+
       if (root.contains(e.target as Node)) return;
       onExit();
     };
