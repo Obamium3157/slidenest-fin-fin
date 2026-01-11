@@ -60,6 +60,15 @@ export function SlideView(props: SlideViewProps) {
   }, [readonly, removeSlideObjects, slide.id, select.selectedSlideObjIds]);
 
   const preventSelection = (e: React.MouseEvent | React.DragEvent) => {
+    if (readonly) return;
+
+    const t = e.target as HTMLElement | null;
+    const isEditable =
+      !!t &&
+      (t.isContentEditable || Boolean(t.closest?.("[contenteditable='true']")));
+
+    if (isEditable) return;
+
     e.preventDefault();
   };
 

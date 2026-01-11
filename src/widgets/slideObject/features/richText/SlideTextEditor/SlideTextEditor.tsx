@@ -79,16 +79,46 @@ export function SlideTextEditor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        editor?.commands.focus();
-        editor?.commands.selectAll();
+      if (!editor) return;
+
+      const isFocused = editor.isFocused;
+
+      if (!isFocused) {
+        if (e.key === "Escape") onExit();
         return;
       }
+
+      const mod = e.ctrlKey || e.metaKey;
+
+      if (mod && e.code === "KeyA") {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.commands.focus();
+        editor.commands.selectAll();
+        return;
+      }
+
+      if (mod && e.code === "KeyB") {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.chain().focus().toggleBold().run();
+        richTextController.notify();
+        return;
+      }
+
+      if (mod && e.code === "KeyI") {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.chain().focus().toggleItalic().run();
+        richTextController.notify();
+        return;
+      }
+
       if (e.key === "Escape") onExit();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [editor, onExit]);
 
   useEffect(() => {
