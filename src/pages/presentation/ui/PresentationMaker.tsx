@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { MenuBar } from "../../../widgets/menubar/ui/MenuBar.tsx";
@@ -17,7 +17,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../entities/store/hooks.ts";
-import { bootstrapPresentation } from "../../../entities/store/appSlice.ts";
+import { useBootstrapPresentationFromRouteParam } from "../../../entities/store/useBootstrapPresentationFromRouteParam.ts";
 import { deselectSlideObjects } from "../../../entities/store/selectionSlice.ts";
 import { ROUTES } from "../../../app/router/routes.ts";
 
@@ -36,15 +36,8 @@ export function PresentationMaker() {
   );
 
   const { presentationId } = useParams<RouteParams>();
-  const lastRequestedIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const nextId = presentationId ?? null;
-    if (lastRequestedIdRef.current === nextId) return;
-    lastRequestedIdRef.current = nextId;
-
-    void dispatch(bootstrapPresentation({ presentationId: nextId }));
-  }, [dispatch, presentationId]);
+  useBootstrapPresentationFromRouteParam(presentationId);
 
   useEffect(() => {
     if (selectedObjIds.length === 0) return;

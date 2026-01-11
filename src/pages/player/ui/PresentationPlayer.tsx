@@ -4,23 +4,24 @@ import { useParams } from "react-router-dom";
 import styles from "./player.module.css";
 
 import { Workspace } from "../../../widgets/workspace/ui/Workspace.tsx";
-import {
-  useAppDispatch,
-  useAppSelector,
-} from "../../../entities/store/hooks.ts";
-import { bootstrapPresentation } from "../../../entities/store/appSlice.ts";
+import { useAppSelector } from "../../../entities/store/hooks.ts";
+import { useBootstrapPresentationFromRouteParam } from "../../../entities/store/useBootstrapPresentationFromRouteParam.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
-import { getOrderedMapOrder } from "../../../shared/types/orderedMap/OrderedMap.ts";
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+} from "../../../shared/lib/constants/constants.ts";
+import {
+  getOrderedMapElementById,
+  getOrderedMapOrder,
+} from "../../../shared/types/orderedMap/OrderedMap.ts";
+import type { Slide } from "../../../entities/slide/model/types.ts";
 
 type RouteParams = {
   presentationId?: string;
 };
 
-const SLIDE_W = 1250;
-const SLIDE_H = 700;
-
 export function PresentationPlayer() {
-  const dispatch = useAppDispatch();
   const { selectSlide } = useAppActions();
 
   const status = useAppSelector((s) => s.app.status);
@@ -30,18 +31,25 @@ export function PresentationPlayer() {
 
   const { presentationId } = useParams<RouteParams>();
 
-  const lastRequestedIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const nextId = presentationId ?? null;
-    if (lastRequestedIdRef.current === nextId) return;
-    lastRequestedIdRef.current = nextId;
-    void dispatch(bootstrapPresentation({ presentationId: nextId }));
-  }, [dispatch, presentationId]);
+  useBootstrapPresentationFromRouteParam(presentationId);
 
   const slideIds = useMemo(() => {
     return getOrderedMapOrder(presentation.slides);
   }, [presentation.slides]);
+
+  const activeSlideId = selection.selectedSlideIds[0] ?? slideIds[0];
+  const activeSlide = (
+    activeSlideId
+      ? (getOrderedMapElementById(presentation.slides, activeSlideId) as Slide)
+      : null
+  ) as Slide | null;
+
+  useEffect(() => {
+    const first = slideIds[0];
+    if (!first) return;
+    if (selection.selectedSlideIds[0]) return;
+    selectSlide({ slideId: first });
+  }, [selectSlide, selection.selectedSlideIds, slideIds]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,17 +86,28 @@ export function PresentationPlayer() {
   }, [selectSlide, selection.selectedSlideIds, slideIds]);
 
   const [scale, setScale] = useState(1);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
     const update = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const s = Math.min(w / SLIDE_W, h / SLIDE_H) * 0.98;
+      const rect = stage.getBoundingClientRect();
+      const s = Math.min(rect.width / SLIDE_WIDTH, rect.height / SLIDE_HEIGHT);
       setScale(Number.isFinite(s) && s > 0 ? s : 1);
     };
 
     update();
+
+    const ro = new ResizeObserver(() => update());
+    ro.observe(stage);
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   if (status === "loading" || status === "idle") {
@@ -99,9 +118,15 @@ export function PresentationPlayer() {
     return <div>Ошибка загрузки: {error}</div>;
   }
 
+  const stageBg = activeSlide?.backgroundColor?.color ?? "black";
+
   return (
-    <div className={styles.playerRoot}>
-      <div className={styles.stage}>
+    <div className={styles.playerRoot} style={{ background: stageBg }}>
+      <div
+        className={styles.stage}
+        ref={stageRef}
+        style={{ background: stageBg }}
+      >
         <div className={styles.scaled} style={{ transform: `scale(${scale})` }}>
           <Workspace mode="player" />
         </div>
