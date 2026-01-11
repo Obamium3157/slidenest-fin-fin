@@ -8,9 +8,21 @@ import type { Slide, SlideObj } from "../slide/model/types.ts";
 import { SLIDE_SIZE } from "../../shared/lib/constants/constants.ts";
 import type { Rect } from "../../shared/types/rect/Rect.ts";
 import { clampResizeRect } from "../../shared/types/rect/lib/functions.ts";
-import type { SlideText } from "../slideText/model/types.ts";
+import type { SlideText, TextDir } from "../slideText/model/types.ts";
 import type { Font } from "../../shared/types/font/Font.ts";
 import type { Color } from "../../shared/types/color/Color.ts";
+
+type UpdateTextHtmlPayload = {
+  slideId: string;
+  objId: string;
+  contentHtml: string;
+};
+
+type UpdateTextDirPayload = {
+  slideId: string;
+  objId: string;
+  dir: TextDir;
+};
 
 function getValidatedPosition(newX: number, newY: number, obj: SlideObj) {
   let finalX = newX;
@@ -226,7 +238,7 @@ export default {
     if (!obj || obj.type !== "text") return;
 
     const textObj = obj as SlideText;
-    const newObj: SlideText = { ...textObj, text: newText };
+    const newObj: SlideText = { ...textObj, contentHtml: newText };
 
     const newSlide: Slide = {
       ...slide,
@@ -536,5 +548,34 @@ export default {
       ),
     };
     state.slides = getNewOrderedMapWithPushed(state.slides, slideId, newSlide);
+  },
+
+  updateTextHtml(
+    state: WritableDraft<Presentation>,
+    action: PayloadAction<UpdateTextHtmlPayload>,
+  ) {
+    const { slideId, objId, contentHtml } = action.payload;
+    const slide = getOrderedMapElementById(state.slides, slideId);
+    if (!slide) return;
+    const obj = getOrderedMapElementById(
+      slide.slideObjects,
+      objId,
+    ) as SlideText;
+    if (!obj || obj.type !== "text") return;
+    obj.contentHtml = contentHtml;
+  },
+  updateTextDir(
+    state: WritableDraft<Presentation>,
+    action: PayloadAction<UpdateTextDirPayload>,
+  ) {
+    const { slideId, objId, dir } = action.payload;
+    const slide = getOrderedMapElementById(state.slides, slideId);
+    if (!slide) return;
+    const obj = getOrderedMapElementById(
+      slide.slideObjects,
+      objId,
+    ) as SlideText;
+    if (!obj || obj.type !== "text") return;
+    obj.dir = dir;
   },
 };

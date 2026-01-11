@@ -4,7 +4,7 @@ import {
 } from "../../../shared/types/orderedMap/OrderedMap.ts";
 import { SlideObjView } from "../../slideObject/ui/SlideObjView.tsx";
 import type { Slide } from "../../../entities/slide/model/types.ts";
-import { SlideObjStaticView } from "../../slideObject/SlideObjStaticView.tsx";
+import { SlideObjStaticView } from "../../slideObject/ui/SlideObjStaticView.tsx";
 
 type SlideObjArrayProps = {
   slide: Slide;

@@ -6,6 +6,11 @@ import undo from "../assets/tabler/arrow-back-up.svg";
 import redo from "../assets/tabler/arrow-forward-up.svg";
 import cursor from "../assets/tabler/pointer.svg";
 import textField from "../assets/tabler/forms.svg";
+import bold from "../assets/tabler/bold.svg";
+import italic from "../assets/tabler/italic.svg";
+import ltr from "../assets/tabler/text-direction-ltr.svg";
+import rtl from "../assets/tabler/text-direction-rtl.svg";
+import textDirAuto from "../assets/tabler/pilcrow.svg";
 import img from "../assets/tabler/photo-down.svg";
 import changeBackground from "../assets/tabler/background.svg";
 import hideUpperPanel from "../assets/tabler/chevron-up.svg";
@@ -18,10 +23,11 @@ type InterfaceButtonViewProps = {
   type: InterfaceButtonType;
   alt: string;
   onClick?: () => void;
+  isActive?: boolean;
 };
 
 export function InterfaceButtonView(props: InterfaceButtonViewProps) {
-  const { type, alt, onClick } = props;
+  const { type, alt, onClick, isActive = false } = props;
 
   if (type === "slideShow") {
     return (
@@ -36,6 +42,11 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
     redo,
     cursor,
     textField,
+    richBold: bold,
+    richItalic: italic,
+    richDirLtr: ltr,
+    richDirRtl: rtl,
+    richDirAuto: textDirAuto,
     imgObject: img,
     newSlide: plus,
     removeSlide: trash,
@@ -49,7 +60,7 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
 
   return (
     <button
-      className={`${styles.toolbarButton} ${defaultFont.defaultFont}`}
+      className={`${styles.toolbarButton} ${isActive ? styles.toolbarButtonActive : ""} ${defaultFont.defaultFont}`}
       onClick={onClick}
       title={alt}
     >

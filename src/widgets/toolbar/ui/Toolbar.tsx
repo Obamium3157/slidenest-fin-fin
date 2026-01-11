@@ -5,9 +5,12 @@ import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbar
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
 import { exportPresentationToPdf } from "../../../shared/lib/pdf/exportPresentationToPdf.tsx";
+import { useRichTextToolbar } from "../lib/useRichTextToolbar.ts";
 
 export function Toolbar() {
   const { undo, redo } = useAppActions();
+
+  const rich = useRichTextToolbar();
 
   const select = useAppSelector((state) => state.presentation.selection);
   const presentation = useAppSelector(
@@ -88,6 +91,43 @@ export function Toolbar() {
             alt={"Вставить текст"}
             onClick={handleAddText}
           />
+
+          {rich.hasEditor && (
+            <>
+              <div className={styles.separator} />
+              <InterfaceButtonView
+                type={"richBold"}
+                alt={"Жирный"}
+                isActive={rich.bold}
+                onClick={rich.toggleBold}
+              />
+              <InterfaceButtonView
+                type={"richItalic"}
+                alt={"Курсив"}
+                isActive={rich.italic}
+                onClick={rich.toggleItalic}
+              />
+              <InterfaceButtonView
+                type={"richDirLtr"}
+                alt={"Направление текста: слева направо"}
+                isActive={rich.dir === "ltr"}
+                onClick={() => rich.setDir("ltr")}
+              />
+              <InterfaceButtonView
+                type={"richDirRtl"}
+                alt={"Направление текста: справа налево"}
+                isActive={rich.dir === "rtl"}
+                onClick={() => rich.setDir("rtl")}
+              />
+              <InterfaceButtonView
+                type={"richDirAuto"}
+                alt={"Автоматическое определение направления текста"}
+                isActive={rich.dir === "auto"}
+                onClick={() => rich.setDir("auto")}
+              />
+            </>
+          )}
+
           <InterfaceButtonView
             type={"imgObject"}
             alt={"Вставить изображение"}
@@ -98,14 +138,11 @@ export function Toolbar() {
             alt={"Сменить фон"}
             onClick={handleChangeBackgroundColor}
           />
-        </div>
-        <div className={styles.buttonsWrapper}>
           <InterfaceButtonView
             type={"exportPdf"}
             alt={exportingPdf ? "Экспорт PDF..." : "Экспорт в PDF"}
             onClick={handleExportPdf}
           />
-          <InterfaceButtonView type={"hideUpperPanel"} alt={"Скрыть меню"} />
         </div>
       </div>
 

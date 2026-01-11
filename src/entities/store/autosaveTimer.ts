@@ -3,7 +3,7 @@ import { getCurrentStatePresentation } from "./selectors.ts";
 import { savePresentationToAppwrite } from "../../shared/lib/appwrite/repo/presentationRepo.ts";
 import { ROUTES } from "../../app/router/routes.ts";
 
-const AUTOSAVE_INTERVAL_MS = 800;
+export const AUTOSAVE_INTERVAL_MS = 800;
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
 

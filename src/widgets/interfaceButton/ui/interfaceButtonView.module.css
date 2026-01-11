@@ -1,16 +1,16 @@
 .slideShowButton {
-  width: fit-content;
-  height: 40px;
-  padding: 10px 16px;
-  border: 2px solid #222;
-  border-radius: 100px;
-  background: transparent;
-  transition: background-color 0.15s ease-in-out;
-  font: var(--font-display-xxxsmall);
-  color: #222;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    width: fit-content;
+    height: 40px;
+    padding: 10px 16px;
+    border: 2px solid #222;
+    border-radius: 100px;
+    background: transparent;
+    transition: background-color 0.15s ease-in-out;
+    font: var(--font-display-xxxsmall);
+    color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .slideShowButton:hover {
@@ -19,35 +19,39 @@
 }
 
 .toolbarButton {
-  background: transparent;
-  border: none;
-  margin: 0 6px;
-  padding: 2px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    transform 0.1s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: transparent;
+    border: none;
+    margin: 0 6px;
+    padding: 2px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+            background 0.2s ease,
+            transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .toolbarButton:hover {
-  background: rgb(0 0 0 / 8%);
+    background: rgb(0 0 0 / 8%);
+}
+
+.toolbarButtonActive {
+    background: rgb(0 0 0 / 10%);
 }
 
 .toolbarButton:active {
-  background: rgb(0 0 0 / 15%);
-  transform: scale(0.95);
+    background: rgb(0 0 0 / 15%);
+    transform: scale(0.95);
 }
 
 .toolbarButton:focus-visible {
-  outline: 2px solid #423e3e4c;
+    outline: 2px solid #423e3e4c;
 }
 
 .toolbarIcon {
-  width: 28px;
-  height: 28px;
-  pointer-events: none;
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
 }

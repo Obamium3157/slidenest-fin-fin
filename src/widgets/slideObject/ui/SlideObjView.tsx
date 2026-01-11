@@ -1,11 +1,14 @@
 import type { Slide, SlideObj } from "../../../entities/slide/model/types.ts";
 import * as React from "react";
+import { useRef, useState } from "react";
 import styles from "./slideObjView.module.css";
+import richStyles from "../features/richText/SlideTextEditor/SlideRichText.module.css";
 import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 import { AllResizePoints } from "../../allResizePoints/ui/AllResizePoints.tsx";
 import { useSlideObjDragAndDrop } from "../../../entities/hooks/lib/useSlideObjDragAndDrop.tsx";
 import { useSlideObjResize } from "../../../entities/hooks/lib/useSlideObjResize.tsx";
 import type { Rect } from "../../../shared/types/rect/Rect.ts";
+import { SlideTextEditor } from "../features/richText/SlideTextEditor/SlideTextEditor.tsx";
 
 export type SlideObjViewProps = {
   slide: Slide;
@@ -19,6 +22,8 @@ export function SlideObjView(props: SlideObjViewProps) {
   const { slide, slideObj, isSelected = false, onSelect } = props;
   const slideId = slide.id;
   const [isHovered, setHovered] = React.useState(false);
+  const [editing, setEditing] = useState(false);
+  const lastPointerDownAtRef = useRef<number>(0);
 
   const { handleClick, onPointerDown, localRects } = useSlideObjDragAndDrop({
     slide,
@@ -50,7 +55,22 @@ export function SlideObjView(props: SlideObjViewProps) {
   const w = visualRect.w;
   const h = visualRect.h;
 
+  const isText = slideObj.type === "text";
+
   const handlePointerDownWrapper = (e: React.PointerEvent) => {
+    if (isText && !editing) {
+      const now = performance.now();
+      const dt = now - lastPointerDownAtRef.current;
+      lastPointerDownAtRef.current = now;
+
+      if (e.button === 0 && dt > 0 && dt < 350) {
+        e.preventDefault();
+        e.stopPropagation();
+        setEditing(true);
+        return;
+      }
+    }
+
     e.preventDefault();
     onPointerDown(e);
   };
@@ -78,12 +98,13 @@ export function SlideObjView(props: SlideObjViewProps) {
     <div
       className={className}
       style={baseStyle}
-      onPointerDown={handlePointerDownWrapper}
+      onPointerDown={editing ? undefined : handlePointerDownWrapper}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={handleClick}
+      onClick={editing ? undefined : handleClick}
+      onDoubleClick={isText && !editing ? () => setEditing(true) : undefined}
     >
-      {isSelected && (
+      {isSelected && !editing && (
         <AllResizePoints
           parentRect={visualRect}
           onResize={handleResize}
@@ -92,12 +113,23 @@ export function SlideObjView(props: SlideObjViewProps) {
       )}
 
       {slideObj.type === "text" ? (
-        <div
-          className={styles.slideObjText}
-          style={getStyleFromFont(slideObj.font)}
-        >
-          {slideObj.text}
-        </div>
+        editing ? (
+          <SlideTextEditor
+            slideId={slideId}
+            objId={slideObj.id}
+            contentHtml={slideObj.contentHtml}
+            dir={slideObj.dir}
+            font={slideObj.font}
+            onExit={() => setEditing(false)}
+          />
+        ) : (
+          <div
+            dir={slideObj.dir ?? "auto"}
+            className={`${styles.slideObjText} ${richStyles.content}`}
+            style={getStyleFromFont(slideObj.font)}
+            dangerouslySetInnerHTML={{ __html: slideObj.contentHtml }}
+          />
+        )
       ) : slideObj.type === "image" ? (
         <img
           src={slideObj.src}

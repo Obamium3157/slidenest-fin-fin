@@ -44,16 +44,24 @@ const fontSchema = {
   additionalProperties: true,
 } as const;
 
+const textDirSchema = {
+  type: "string",
+  enum: ["ltr", "rtl", "auto"],
+} as const;
+
 const slideTextSchema = {
   type: "object",
   properties: {
     id: { type: "string" },
     type: { const: "text" },
+    contentHtml: { type: "string" },
     text: { type: "string" },
+    dir: textDirSchema,
     rect: rectSchema,
     font: fontSchema,
   },
-  required: ["id", "type", "text", "rect", "font"],
+  required: ["id", "type", "rect", "font"],
+  anyOf: [{ required: ["contentHtml"] }, { required: ["text"] }],
   additionalProperties: false,
 } as const;
 

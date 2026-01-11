@@ -1,9 +1,10 @@
 import * as React from "react";
-import type { SlideObj } from "../../entities/slide/model/types.ts";
-import type { Rect } from "../../shared/types/rect/Rect.ts";
-import { getStyleFromFont } from "../../entities/slideText/lib/slideText.ts";
+import type { SlideObj } from "../../../entities/slide/model/types.ts";
+import type { Rect } from "../../../shared/types/rect/Rect.ts";
+import { getStyleFromFont } from "../../../entities/slideText/lib/slideText.ts";
 
-import styles from "./ui/slideObjView.module.css";
+import styles from "./slideObjView.module.css";
+import richStyles from "../features/richText/SlideTextEditor/SlideRichText.module.css";
 
 export type SlideObjStaticViewProps = {
   slideObj: SlideObj;
@@ -27,11 +28,11 @@ export function SlideObjStaticView(props: SlideObjStaticViewProps) {
     <div className={styles.slideObj} style={baseStyle}>
       {slideObj.type === "text" ? (
         <div
-          className={styles.slideObjText}
+          dir={slideObj.dir ?? "auto"}
+          className={`${styles.slideObjText} ${richStyles.content}`}
           style={getStyleFromFont(slideObj.font)}
-        >
-          {slideObj.text}
-        </div>
+          dangerouslySetInnerHTML={{ __html: slideObj.contentHtml }}
+        />
       ) : slideObj.type === "image" ? (
         <img
           src={slideObj.src}

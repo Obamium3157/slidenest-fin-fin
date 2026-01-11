@@ -90,5 +90,7 @@ export const {
   changeWordSpacing,
   changeTextDecoration,
   changeTextTransform,
+  updateTextHtml,
+  updateTextDir,
 } = presentationSlice.actions;
 export default presentationSlice.reducer;
