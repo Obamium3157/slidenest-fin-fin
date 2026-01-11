@@ -8,35 +8,41 @@ import { RegisterPage } from "../../pages/auth/ui/RegisterPage/RegisterPage.tsx"
 import { UserPresentationsList } from "../../pages/UserPresentationsList/UserPresentationsList.tsx";
 import { PresentationMaker } from "../../pages/presentation/ui/PresentationMaker.tsx";
 import { PresentationPlayer } from "../../pages/player/ui/PresentationPlayer.tsx";
+import type { JSX } from "react";
+
+type RouteConfig = {
+  path: string;
+  element: JSX.Element;
+};
+
+const PUBLIC_ROUTES: RouteConfig[] = [
+  {
+    path: ROUTES.ROOT,
+    element: <Navigate to={ROUTES.PRESENTATIONS} replace />,
+  },
+  { path: ROUTES.LOGIN, element: <LoginPage /> },
+  { path: ROUTES.REGISTER, element: <RegisterPage /> },
+];
+
+const PRIVATE_ROUTES: RouteConfig[] = [
+  { path: ROUTES.PRESENTATIONS, element: <UserPresentationsList /> },
+  { path: ROUTES.EDITOR, element: <PresentationMaker /> },
+  { path: `${ROUTES.EDITOR}/:presentationId`, element: <PresentationMaker /> },
+  { path: ROUTES.PLAYER, element: <PresentationPlayer /> },
+  { path: `${ROUTES.PLAYER}/:presentationId`, element: <PresentationPlayer /> },
+];
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route
-        path={ROUTES.ROOT}
-        element={<Navigate to={ROUTES.PRESENTATIONS} replace />}
-      />
-
-      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+      {PUBLIC_ROUTES.map((r) => (
+        <Route key={r.path} path={r.path} element={r.element} />
+      ))}
 
       <Route element={<RequireAuth />}>
-        <Route
-          path={ROUTES.PRESENTATIONS}
-          element={<UserPresentationsList />}
-        />
-
-        <Route path={ROUTES.EDITOR} element={<PresentationMaker />} />
-        <Route
-          path={`${ROUTES.EDITOR}/:presentationId`}
-          element={<PresentationMaker />}
-        />
-
-        <Route path={ROUTES.PLAYER} element={<PresentationPlayer />} />
-        <Route
-          path={`${ROUTES.PLAYER}/:presentationId`}
-          element={<PresentationPlayer />}
-        />
+        {PRIVATE_ROUTES.map((r) => (
+          <Route key={r.path} path={r.path} element={r.element} />
+        ))}
       </Route>
 
       <Route

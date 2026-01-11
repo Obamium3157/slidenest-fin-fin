@@ -9,13 +9,11 @@ let intervalId: ReturnType<typeof setInterval> | null = null;
 
 let lastSavedSnapshot: string | null = null;
 
-const saveGate = {
-  inFlight: false,
-  again: false,
-};
+let inFlightSave: Promise<void> | null = null;
 
 function isEditorRouteOpen(): boolean {
-  return window.location.pathname.startsWith(`${ROUTES.EDITOR}/`);
+  const path = window.location.pathname;
+  return path === ROUTES.EDITOR || path.startsWith(`${ROUTES.EDITOR}/`);
 }
 
 function canAutosave(state: RootState): boolean {
@@ -50,31 +48,20 @@ async function saveIfNeeded(getState: () => RootState): Promise<void> {
   lastSavedSnapshot = snapshot;
 }
 
-async function runSerializedSave(getState: () => RootState): Promise<void> {
-  if (saveGate.inFlight) {
-    saveGate.again = true;
-    return;
-  }
-
-  saveGate.inFlight = true;
-
-  try {
-    do {
-      saveGate.again = false;
-
-      try {
-        await saveIfNeeded(getState);
-      } catch (err) {
-        console.error("Ошибка автосохранения в Appwrite:", err);
-      }
-    } while (saveGate.again);
-  } finally {
-    saveGate.inFlight = false;
-  }
-}
-
 export const autosaveTick = (): AppThunk => async (_dispatch, getState) => {
-  await runSerializedSave(getState);
+  if (inFlightSave) return;
+
+  inFlightSave = (async () => {
+    try {
+      await saveIfNeeded(getState);
+    } catch (err) {
+      console.error("Ошибка автосохранения в Appwrite:", err);
+    }
+  })().finally(() => {
+    inFlightSave = null;
+  });
+
+  await inFlightSave;
 };
 
 export const startAutosaveTimer = (): AppThunk => (dispatch) => {
@@ -91,7 +78,6 @@ export const stopAutosaveTimer = (): AppThunk => () => {
     intervalId = null;
   }
 
-  saveGate.inFlight = false;
-  saveGate.again = false;
+  inFlightSave = null;
   lastSavedSnapshot = null;
 };
