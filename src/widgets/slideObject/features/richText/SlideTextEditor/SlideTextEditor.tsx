@@ -64,6 +64,7 @@ export function SlideTextEditor({
   useEffect(() => {
     if (!editor) return;
     richTextController.setEditor(editor);
+    richTextController.setContext({ slideId, objId, font });
 
     const unsubDir = richTextController.subscribeDir((nextDir) => {
       dispatch(updateTextDir({ slideId, objId, dir: nextDir }));
@@ -71,19 +72,27 @@ export function SlideTextEditor({
 
     return () => {
       unsubDir();
+      richTextController.setContext(null);
       richTextController.setEditor(null);
     };
-  }, [dispatch, editor, objId, slideId]);
+  }, [dispatch, editor, font, objId, slideId]);
+
+  useEffect(() => {
+    if (!editor) return;
+    richTextController.setContext({ slideId, objId, font });
+  }, [editor, font, objId, slideId]);
 
   useDebouncedTextCommit(slideId, objId, html);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!editor) return;
+      const t = e.target as HTMLElement | null;
+      const isInThisEditor =
+        Boolean(
+          t?.isContentEditable || t?.closest?.("[contenteditable='true']"),
+        ) && Boolean(rootRef.current?.contains(t));
 
-      const isFocused = editor.isFocused;
-
-      if (!isFocused) {
+      if (!isInThisEditor) {
         if (e.key === "Escape") onExit();
         return;
       }
@@ -92,24 +101,21 @@ export function SlideTextEditor({
 
       if (mod && e.code === "KeyA") {
         e.preventDefault();
-        e.stopPropagation();
-        editor.commands.focus();
-        editor.commands.selectAll();
+        editor?.commands.focus();
+        editor?.commands.selectAll();
         return;
       }
 
       if (mod && e.code === "KeyB") {
         e.preventDefault();
-        e.stopPropagation();
-        editor.chain().focus().toggleBold().run();
+        editor?.chain().focus().toggleBold().run();
         richTextController.notify();
         return;
       }
 
       if (mod && e.code === "KeyI") {
         e.preventDefault();
-        e.stopPropagation();
-        editor.chain().focus().toggleItalic().run();
+        editor?.chain().focus().toggleItalic().run();
         richTextController.notify();
         return;
       }
@@ -117,8 +123,8 @@ export function SlideTextEditor({
       if (e.key === "Escape") onExit();
     };
 
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [editor, onExit]);
 
   useEffect(() => {

@@ -1,22 +1,41 @@
 import type { Editor } from "@tiptap/core";
 import type { TextDir } from "../../../../../entities/slideText/model/types.ts";
+import type { Font } from "../../../../../shared/types/font/Font.ts";
 
 type Listener = () => void;
 type DirListener = (dir: TextDir) => void;
 
+export type RichTextContext = {
+  slideId: string;
+  objId: string;
+  font: Font;
+};
+
 class RichTextController {
   private editor: Editor | null = null;
+  private context: RichTextContext | null = null;
+
   private listeners = new Set<Listener>();
   private dirListeners = new Set<DirListener>();
 
   setEditor(next: Editor | null) {
     if (this.editor === next) return;
     this.editor = next;
+    if (!next) this.context = null;
     this.notify();
   }
 
   getEditor(): Editor | null {
     return this.editor;
+  }
+
+  setContext(next: RichTextContext | null) {
+    this.context = next;
+    this.notify();
+  }
+
+  getContext(): RichTextContext | null {
+    return this.context;
   }
 
   subscribe(listener: Listener): () => void {
