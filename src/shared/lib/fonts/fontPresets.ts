@@ -30,4 +30,19 @@ export const FONT_PRESETS: FontPreset[] = [
     label: "Noto Sans JP",
     fontFamily: "NotoSansJP",
   },
+  {
+    id: "yuji_boku",
+    label: "湯治穆",
+    fontFamily: "YujiBoku",
+  },
+  {
+    id: "rubik",
+    label: "Rubik",
+    fontFamily: "Rubik",
+  },
+  {
+    id: "amiri",
+    label: "Amiri",
+    fontFamily: "Amiri",
+  },
 ];

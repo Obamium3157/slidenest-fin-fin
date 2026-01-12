@@ -1,0 +1,20 @@
+@font-face {
+    font-family: Rubik;
+    src: url("Rubik-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Rubik;
+    src: url("Rubik-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Rubik;
+    src: url("Rubik-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
