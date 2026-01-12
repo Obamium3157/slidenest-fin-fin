@@ -58,14 +58,15 @@ export function PresentationsGridItem(props: PresentationsGridItemProps) {
         disabled={props.disabled}
       >
         <div className={styles.preview} style={{ background: "#ffffff" }}>
-          <div className={styles.previewPlaceholder} />
           <div className={styles.createPlaceholderContent}>
             <PlusIcon />
           </div>
         </div>
 
         <div className={styles.titleRow}>
-          <div className={styles.titleText}>{props.title}</div>
+          <div className={styles.titleText} style={{ textAlign: "center" }}>
+            {props.title}
+          </div>
         </div>
       </button>
     );
