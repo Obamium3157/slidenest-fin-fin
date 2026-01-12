@@ -8,6 +8,8 @@ import { exportPresentationToPdf } from "../../../shared/lib/pdf/exportPresentat
 import { useRichTextToolbar } from "../lib/useRichTextToolbar.ts";
 import { FONT_PRESETS } from "../../../shared/lib/fonts/fontPresets.ts";
 
+import downArrow from "../../interfaceButton/assets/caret-down.svg";
+
 function parsePx(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const m = value.trim().match(/^(-?\d+(?:\.\d+)?)px$/i);
@@ -240,9 +242,7 @@ export function Toolbar() {
                   >
                     {fontFamilyLabel}
                   </span>
-                  <span className={styles.fontFamilyArrow} aria-hidden="true">
-                    ▼
-                  </span>
+                  <img className={styles.downArrow} src={downArrow} alt={"▼"} />
                 </button>
 
                 {fontMenuOpen && (
@@ -266,13 +266,11 @@ export function Toolbar() {
               <div className={styles.separator} />
 
               <div className={styles.fontSizeWrapper} title="Размер шрифта">
-                <button
-                  type="button"
-                  className={styles.fontSizeBtn}
+                <InterfaceButtonView
+                  type={"decreaseFontSize"}
+                  alt={"-"}
                   onClick={() => bumpFontSize(-1)}
-                >
-                  -
-                </button>
+                />
 
                 <input
                   className={styles.fontSizeInput}
@@ -305,13 +303,11 @@ export function Toolbar() {
                   }}
                 />
 
-                <button
-                  type="button"
-                  className={styles.fontSizeBtn}
+                <InterfaceButtonView
+                  type={"increaseFontSize"}
+                  alt={"-"}
                   onClick={() => bumpFontSize(1)}
-                >
-                  +
-                </button>
+                />
               </div>
 
               <div className={styles.separator} />

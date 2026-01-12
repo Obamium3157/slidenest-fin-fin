@@ -4,7 +4,7 @@ import plus from "../assets/tabler/plus.svg";
 import trash from "../assets/tabler/trash.svg";
 import undo from "../assets/tabler/arrow-back-up.svg";
 import redo from "../assets/tabler/arrow-forward-up.svg";
-import cursor from "../assets/tabler/pointer.svg";
+import minus from "../assets/tabler/minus.svg";
 import textField from "../assets/tabler/forms.svg";
 import bold from "../assets/tabler/bold.svg";
 import italic from "../assets/tabler/italic.svg";
@@ -40,7 +40,6 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
   const icons: Record<string, string> = {
     undo,
     redo,
-    cursor,
     textField,
     richBold: bold,
     richItalic: italic,
@@ -53,6 +52,8 @@ export function InterfaceButtonView(props: InterfaceButtonViewProps) {
     changeBackground,
     exportPdf,
     hideUpperPanel,
+    decreaseFontSize: minus,
+    increaseFontSize: plus,
   };
 
   const src = icons[type];

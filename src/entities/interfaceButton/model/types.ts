@@ -14,4 +14,6 @@ export type InterfaceButtonType =
   | "changeBackground"
   | "exportPdf"
   | "slideShow"
-  | "hideUpperPanel";
+  | "hideUpperPanel"
+  | "decreaseFontSize"
+  | "increaseFontSize";
