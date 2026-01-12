@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Extension } from "@tiptap/core";
 import type { TextDir } from "../../../../../entities/slideText/model/types.ts";
 import { useDebouncedTextCommit } from "../lib/useDebouncedTextCommit.ts";
 import { useAppDispatch } from "../../../../../entities/store/hooks.ts";
@@ -35,22 +34,8 @@ export function SlideTextEditor({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [html, setHtml] = useState(contentHtml);
 
-  const shortcutsExt = useMemo(
-    () =>
-      Extension.create({
-        name: "slideTextShortcuts",
-        addKeyboardShortcuts() {
-          return {
-            "Mod-b": () => this.editor.chain().focus().toggleBold().run(),
-            "Mod-i": () => this.editor.chain().focus().toggleItalic().run(),
-          };
-        },
-      }),
-    [],
-  );
-
   const editor = useEditor({
-    extensions: [StarterKit, FontSize, FontFamily, shortcutsExt],
+    extensions: [StarterKit, FontSize, FontFamily],
     content: contentHtml,
     onUpdate: ({ editor }) => {
       setHtml(editor.getHTML());
@@ -62,14 +47,6 @@ export function SlideTextEditor({
     editorProps: {
       attributes: {
         class: `${styles.proseMirror} ${richStyles.content}`,
-      },
-      handleKeyDown: (_view, event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          onExit();
-          return true;
-        }
-        return false;
       },
     },
   });
