@@ -25,6 +25,8 @@ export function useRichTextToolbar() {
   const toggleBold = () => richTextController.toggleBold();
   const toggleItalic = () => richTextController.toggleItalic();
   const setDir = (dir: TextDir) => richTextController.setDir(dir);
+  const setFontFamily = (family: string) =>
+    richTextController.setFontFamily(family);
   const bumpFontSize = (delta: number) =>
     richTextController.bumpFontSize(delta);
 
@@ -35,9 +37,12 @@ export function useRichTextToolbar() {
     italic: state.italic,
     dir: state.dir,
     fontSizePx: state.fontSizePx,
+    fontFamilyLabel: state.fontFamilyLabel,
+    isMixedFontFamily: state.isMixedFontFamily,
     toggleBold,
     toggleItalic,
     setDir,
+    setFontFamily,
     bumpFontSize,
   };
 }

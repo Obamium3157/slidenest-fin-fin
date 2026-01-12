@@ -1,6 +1,6 @@
 import styles from "./toolbar.module.css";
 import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonView.tsx";
-import { useRef, useEffect, useCallback, useMemo, useState } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
@@ -17,7 +17,7 @@ function parsePx(value: string | undefined, fallback: number): number {
 }
 
 export function Toolbar() {
-  const { undo, redo, changeFontFamily } = useAppActions();
+  const { undo, redo, changeFontFamily, changeFontSize } = useAppActions();
 
   const rich = useRichTextToolbar();
 
@@ -97,21 +97,23 @@ export function Toolbar() {
 
   const ctx = rich.context;
 
-  const currentFontFamily = ctx?.font.fontFamily ?? "SST";
-  const currentFontSizePx = useMemo(() => {
-    if (rich.hasEditor) return rich.fontSizePx;
-    return parsePx(ctx?.font.fontSize, 15);
-  }, [ctx?.font.fontSize, rich.fontSizePx, rich.hasEditor]);
+  const baseFontFamily = ctx?.font.fontFamily ?? "SST";
+  const currentFontFamilyLabel = rich.fontFamilyLabel ?? baseFontFamily;
+  const currentFontSizePx = rich.fontSizePx ?? parsePx(ctx?.font.fontSize, 15);
 
   const canEditFont = Boolean(rich.hasEditor && ctx);
 
   const applyFontFamily = (family: string) => {
     if (!ctx) return;
-    changeFontFamily({
-      slideId: ctx.slideId,
-      objId: ctx.objId,
-      newFamily: family,
-    });
+    if (rich.hasEditor) {
+      rich.setFontFamily(family);
+    } else {
+      changeFontFamily({
+        slideId: ctx.slideId,
+        objId: ctx.objId,
+        newFamily: family,
+      });
+    }
     setFontMenuOpen(false);
   };
 
@@ -121,6 +123,16 @@ export function Toolbar() {
       rich.bumpFontSize(delta);
       return;
     }
+
+    const next = Math.max(
+      1,
+      Math.min(200, Math.round(currentFontSizePx + delta)),
+    );
+    changeFontSize({
+      slideId: ctx.slideId,
+      objId: ctx.objId,
+      newSize: `${next}px`,
+    });
   };
 
   return (
@@ -139,7 +151,6 @@ export function Toolbar() {
           />
           <InterfaceButtonView type={"undo"} alt={"Отменить"} onClick={undo} />
           <InterfaceButtonView type={"redo"} alt={"Повторить"} onClick={redo} />
-          <InterfaceButtonView type={"cursor"} alt={"Выбрать (Esc)"} />
           <InterfaceButtonView
             type={"textField"}
             alt={"Вставить текст"}
@@ -174,9 +185,14 @@ export function Toolbar() {
                 >
                   <span
                     className={styles.fontFamilyLabel}
-                    style={{ fontFamily: currentFontFamily }}
+                    style={{
+                      fontFamily:
+                        currentFontFamilyLabel === "..."
+                          ? baseFontFamily
+                          : currentFontFamilyLabel,
+                    }}
                   >
-                    {currentFontFamily}
+                    {currentFontFamilyLabel}
                   </span>
                   <span className={styles.fontFamilyArrow} aria-hidden="true">
                     ▼

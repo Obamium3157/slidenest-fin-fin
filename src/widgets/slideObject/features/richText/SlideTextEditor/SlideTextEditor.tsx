@@ -11,6 +11,7 @@ import richStyles from "./SlideRichText.module.css";
 import styles from "./SlideTextEditor.module.css";
 import { richTextController } from "../lib/richTextController.ts";
 import { FontSize } from "../lib/fontSizeExtension.ts";
+import { FontFamily } from "../lib/fontFamilyExtension.ts";
 
 type Props = {
   slideId: string;
@@ -34,7 +35,7 @@ export function SlideTextEditor({
   const [html, setHtml] = useState(contentHtml);
 
   const editor = useEditor({
-    extensions: [StarterKit, FontSize],
+    extensions: [StarterKit, FontSize, FontFamily],
     content: contentHtml,
     onUpdate: ({ editor }) => {
       setHtml(editor.getHTML());
