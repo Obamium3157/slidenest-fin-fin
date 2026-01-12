@@ -1,6 +1,6 @@
 import styles from "./toolbar.module.css";
 import { InterfaceButtonView } from "../../interfaceButton/ui/InterfaceButtonView.tsx";
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { useToolbarInitialization } from "../../../entities/hooks/lib/useToolbarInitialization.tsx";
 import { useAppSelector } from "../../../entities/store/hooks.ts";
 import { useAppActions } from "../../../entities/store/actions.ts";
@@ -14,6 +14,18 @@ function parsePx(value: string | undefined, fallback: number): number {
   if (!m) return fallback;
   const n = Number(m[1]);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function clampInt(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, Math.round(v)));
+}
+
+function parseUserFontSize(input: string): number | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n)) return null;
+  return n;
 }
 
 export function Toolbar() {
@@ -96,12 +108,27 @@ export function Toolbar() {
   }, [exportingPdf, presentation]);
 
   const ctx = rich.context;
+  const canEditFont = Boolean(rich.hasEditor && ctx);
 
   const baseFontFamily = ctx?.font.fontFamily ?? "SST";
-  const currentFontFamilyLabel = rich.fontFamilyLabel ?? baseFontFamily;
-  const currentFontSizePx = rich.fontSizePx ?? parsePx(ctx?.font.fontSize, 15);
+  const fontFamilyLabel = rich.hasEditor
+    ? (rich.fontFamilyLabel ?? baseFontFamily)
+    : baseFontFamily;
 
-  const canEditFont = Boolean(rich.hasEditor && ctx);
+  const effectiveFontSizePx = useMemo(() => {
+    if (rich.hasEditor) return rich.fontSizePx ?? 15;
+    return parsePx(ctx?.font.fontSize, 15);
+  }, [ctx?.font.fontSize, rich.fontSizePx, rich.hasEditor]);
+
+  const [fontSizeDraft, setFontSizeDraft] = useState<string>(
+    String(effectiveFontSizePx),
+  );
+  const fontSizeEditingRef = useRef(false);
+
+  useEffect(() => {
+    if (fontSizeEditingRef.current) return;
+    setFontSizeDraft(String(effectiveFontSizePx));
+  }, [effectiveFontSizePx]);
 
   const applyFontFamily = (family: string) => {
     if (!ctx) return;
@@ -124,10 +151,29 @@ export function Toolbar() {
       return;
     }
 
-    const next = Math.max(
-      1,
-      Math.min(200, Math.round(currentFontSizePx + delta)),
-    );
+    const next = clampInt(effectiveFontSizePx + delta, 1, 200);
+    changeFontSize({
+      slideId: ctx.slideId,
+      objId: ctx.objId,
+      newSize: `${next}px`,
+    });
+  };
+
+  const commitFontSize = (raw: string) => {
+    if (!ctx) return;
+    const parsed = parseUserFontSize(raw);
+    if (parsed === null) {
+      setFontSizeDraft(String(effectiveFontSizePx));
+      return;
+    }
+    const next = clampInt(parsed, 1, 200);
+    setFontSizeDraft(String(next));
+
+    if (rich.hasEditor) {
+      rich.setFontSizePx(next);
+      return;
+    }
+
     changeFontSize({
       slideId: ctx.slideId,
       objId: ctx.objId,
@@ -187,12 +233,12 @@ export function Toolbar() {
                     className={styles.fontFamilyLabel}
                     style={{
                       fontFamily:
-                        currentFontFamilyLabel === "..."
+                        fontFamilyLabel === "..."
                           ? baseFontFamily
-                          : currentFontFamilyLabel,
+                          : fontFamilyLabel,
                     }}
                   >
-                    {currentFontFamilyLabel}
+                    {fontFamilyLabel}
                   </span>
                   <span className={styles.fontFamilyArrow} aria-hidden="true">
                     ▼
@@ -227,7 +273,38 @@ export function Toolbar() {
                 >
                   -
                 </button>
-                <div className={styles.fontSizeValue}>{currentFontSizePx}</div>
+
+                <input
+                  className={styles.fontSizeInput}
+                  inputMode="numeric"
+                  value={fontSizeDraft}
+                  onFocus={() => {
+                    fontSizeEditingRef.current = true;
+                  }}
+                  onChange={(e) => {
+                    const next = e.target.value.replace(/[^0-9]/g, "");
+                    setFontSizeDraft(next);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      commitFontSize(fontSizeDraft);
+                      (e.target as HTMLInputElement).blur();
+                      return;
+                    }
+
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      setFontSizeDraft(String(effectiveFontSizePx));
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
+                  onBlur={() => {
+                    fontSizeEditingRef.current = false;
+                    commitFontSize(fontSizeDraft);
+                  }}
+                />
+
                 <button
                   type="button"
                   className={styles.fontSizeBtn}

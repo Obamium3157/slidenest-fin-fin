@@ -140,7 +140,7 @@ class RichTextController {
         bold: false,
         italic: false,
         dir: "auto",
-        fontSizePx: baseSizePx,
+        fontSizePx: clampInt(baseSizePx, 1, 200),
         fontFamilyLabel: baseFamily,
         isMixedFontFamily: false,
       };
@@ -158,7 +158,7 @@ class RichTextController {
       bold: editor.isActive("bold"),
       italic: editor.isActive("italic"),
       dir: domDir,
-      fontSizePx: clampInt(metrics.maxFontSizePx, 1, 500),
+      fontSizePx: clampInt(metrics.maxFontSizePx, 1, 200),
       fontFamilyLabel,
       isMixedFontFamily,
     };
@@ -195,6 +195,14 @@ class RichTextController {
     this.notify();
   }
 
+  setFontSizePx(px: number) {
+    const editor = this.editor;
+    if (!editor) return;
+    const next = clampInt(px, 1, 200);
+    editor.chain().focus().setFontSize(`${next}px`).run();
+    this.notify();
+  }
+
   bumpFontSize(delta: number) {
     const editor = this.editor;
     if (!editor) return;
@@ -203,7 +211,7 @@ class RichTextController {
     const baseSizePx = parsePx(this.context?.font.fontSize ?? null, 15);
     const metrics = collectSelectionMetrics(editor, baseFamily, baseSizePx);
     const current = metrics.maxFontSizePx;
-    const next = clampInt(current + delta, 1, 500);
+    const next = clampInt(current + delta, 1, 200);
 
     editor.chain().focus().setFontSize(`${next}px`).run();
     this.notify();

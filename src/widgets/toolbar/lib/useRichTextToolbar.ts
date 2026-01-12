@@ -29,6 +29,7 @@ export function useRichTextToolbar() {
     richTextController.setFontFamily(family);
   const bumpFontSize = (delta: number) =>
     richTextController.bumpFontSize(delta);
+  const setFontSizePx = (px: number) => richTextController.setFontSizePx(px);
 
   return {
     hasEditor,
@@ -44,5 +45,6 @@ export function useRichTextToolbar() {
     setDir,
     setFontFamily,
     bumpFontSize,
+    setFontSizePx,
   };
 }
