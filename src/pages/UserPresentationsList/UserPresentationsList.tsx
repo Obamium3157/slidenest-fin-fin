@@ -4,10 +4,9 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type MouseEvent,
 } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth";
 import {
   listMyPresentations,
@@ -20,7 +19,6 @@ import { createDefaultPresentation } from "../../entities/presentation/model/cre
 
 import type { Presentation } from "../../entities/presentation/model/types.ts";
 import type { Slide } from "../../entities/slide/model/types.ts";
-import { AllSlideObjects } from "../../widgets/allSlideObjects/ui/AllSlideObjects.tsx";
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
@@ -29,8 +27,8 @@ import { ROUTES } from "../../app/router/routes.ts";
 
 import styles from "./UserPresentationsList.module.css";
 import { LogoutButton } from "../../widgets/logoutButton/ui/LogoutButton.tsx";
-
-import trash from "./assets/tabler/trash.svg";
+import { PresentationsGrid } from "./PresentationsGrid.tsx";
+import { PresentationsGridItem } from "./PresentationsGridItem.tsx";
 
 type LoadState = "idle" | "loading" | "error";
 
@@ -185,32 +183,10 @@ export function UserPresentationsList() {
 
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
 
-  const gridStyle = {
-    ["--tile-w" as string]: `${PREVIEW_W}px`,
-    ["--tile-h" as string]: `${PREVIEW_H}px`,
-  } as CSSProperties;
-
   return (
     <div className={styles.page}>
       <div className={styles.topBar}>
-        <div className={styles.actions}>
-          <button
-            className={styles.actionButton}
-            onClick={onCreate}
-            disabled={creating}
-          >
-            {creating ? "Создание..." : "Создать новую презентацию"}
-          </button>
-
-          <button
-            className={styles.actionButton}
-            onClick={() => void load()}
-            disabled={state === "loading" || creating}
-          >
-            Обновить
-          </button>
-        </div>
-
+        <div />
         <div className={styles.sideContainer}>
           <LogoutButton />
         </div>
@@ -225,67 +201,31 @@ export function UserPresentationsList() {
       <div className={styles.content}>
         {state === "loading" ? (
           <div className={styles.statusText}>Загрузка списка...</div>
-        ) : items.length === 0 ? (
-          <div className={styles.statusText}>У вас пока нет презентаций.</div>
         ) : (
-          <div className={styles.gridScroller}>
-            <div className={styles.grid} style={gridStyle}>
-              {items.map((p) => {
-                const slide = firstSlides[p.presentationId];
-                return (
-                  <Link
-                    key={p.presentationId}
-                    to={`${ROUTES.EDITOR}/${p.presentationId}`}
-                    className={styles.tile}
-                  >
-                    <div
-                      className={styles.preview}
-                      style={{
-                        background: slide?.backgroundColor?.color ?? "#ffffff",
-                      }}
-                    >
-                      {slide ? (
-                        <div
-                          className={styles.previewInner}
-                          style={{
-                            width: SLIDE_WIDTH,
-                            height: SLIDE_HEIGHT,
-                            transform: `scale(${1 / PREVIEW_SCALE_FACTOR})`,
-                            transformOrigin: "top left",
-                          }}
-                        >
-                          <AllSlideObjects slide={slide} readonly />
-                        </div>
-                      ) : (
-                        <div className={styles.previewPlaceholder} />
-                      )}
-                    </div>
+          <PresentationsGrid tileW={PREVIEW_W} tileH={PREVIEW_H}>
+            <PresentationsGridItem
+              kind="create"
+              title={creating ? "Создание..." : "Создать новую презентацию"}
+              disabled={creating}
+              onClick={() => void onCreate()}
+            />
 
-                    <div className={styles.titleRow}>
-                      <div className={styles.titleText}>
-                        {p.title || "Без названия"}
-                      </div>
-
-                      <button
-                        type="button"
-                        className={styles.deleteButton}
-                        onClick={(e) => void onDelete(e, p)}
-                        disabled={deletingId === p.presentationId}
-                        aria-label="Удалить презентацию"
-                        title="Удалить"
-                      >
-                        <img
-                          className={styles.deleteIcon}
-                          src={trash}
-                          alt={"Удалить"}
-                        />
-                      </button>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+            {items.map((p) => {
+              const slide = firstSlides[p.presentationId] ?? null;
+              return (
+                <PresentationsGridItem
+                  key={p.presentationId}
+                  kind="presentation"
+                  title={p.title || "Без названия"}
+                  to={`${ROUTES.EDITOR}/${p.presentationId}`}
+                  slide={slide}
+                  showDelete
+                  deleting={deletingId === p.presentationId}
+                  onDelete={(e) => void onDelete(e, p)}
+                />
+              );
+            })}
+          </PresentationsGrid>
         )}
       </div>
     </div>
