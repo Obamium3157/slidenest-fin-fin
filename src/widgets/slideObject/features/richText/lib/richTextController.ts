@@ -11,6 +11,14 @@ export type RichTextContext = {
   font: Font;
 };
 
+function parsePx(value: string | undefined | null, fallback: number): number {
+  if (!value) return fallback;
+  const m = value.trim().match(/^(-?\d+(?:\.\d+)?)px$/i);
+  if (!m) return fallback;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 class RichTextController {
   private editor: Editor | null = null;
   private context: RichTextContext | null = null;
@@ -56,17 +64,36 @@ class RichTextController {
     for (const l of this.listeners) l();
   }
 
-  getState(): { bold: boolean; italic: boolean; dir: TextDir } {
+  getState(): {
+    bold: boolean;
+    italic: boolean;
+    dir: TextDir;
+    fontSizePx: number;
+  } {
     const editor = this.editor;
-    if (!editor) return { bold: false, italic: false, dir: "auto" };
+    const baseSizePx = parsePx(this.context?.font.fontSize ?? null, 15);
+    if (!editor)
+      return {
+        bold: false,
+        italic: false,
+        dir: "auto",
+        fontSizePx: baseSizePx,
+      };
 
     const domDir =
       (editor.view.dom.getAttribute("dir") as TextDir | null) ?? "auto";
+
+    const markSize = editor.getAttributes("fontSize")?.size as
+      | string
+      | undefined
+      | null;
+    const fontSizePx = parsePx(markSize, baseSizePx);
 
     return {
       bold: editor.isActive("bold"),
       italic: editor.isActive("italic"),
       dir: domDir,
+      fontSizePx,
     };
   }
 
@@ -91,6 +118,22 @@ class RichTextController {
     editor.commands.focus();
 
     for (const l of this.dirListeners) l(nextDir);
+    this.notify();
+  }
+
+  bumpFontSize(delta: number) {
+    const editor = this.editor;
+    if (!editor) return;
+
+    const baseSizePx = parsePx(this.context?.font.fontSize ?? null, 15);
+    const markSize = editor.getAttributes("fontSize")?.size as
+      | string
+      | undefined
+      | null;
+    const current = parsePx(markSize, baseSizePx);
+    const next = Math.max(1, Math.min(500, Math.round(current + delta)));
+
+    editor.chain().focus().setFontSize(`${next}px`).run();
     this.notify();
   }
 }

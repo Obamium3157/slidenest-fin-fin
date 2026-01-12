@@ -17,7 +17,7 @@ function parsePx(value: string | undefined, fallback: number): number {
 }
 
 export function Toolbar() {
-  const { undo, redo, changeFontFamily, changeFontSize } = useAppActions();
+  const { undo, redo, changeFontFamily } = useAppActions();
 
   const rich = useRichTextToolbar();
 
@@ -99,8 +99,9 @@ export function Toolbar() {
 
   const currentFontFamily = ctx?.font.fontFamily ?? "SST";
   const currentFontSizePx = useMemo(() => {
+    if (rich.hasEditor) return rich.fontSizePx;
     return parsePx(ctx?.font.fontSize, 15);
-  }, [ctx?.font.fontSize]);
+  }, [ctx?.font.fontSize, rich.fontSizePx, rich.hasEditor]);
 
   const canEditFont = Boolean(rich.hasEditor && ctx);
 
@@ -116,15 +117,10 @@ export function Toolbar() {
 
   const bumpFontSize = (delta: number) => {
     if (!ctx) return;
-    const next = Math.max(
-      1,
-      Math.min(500, Math.round(currentFontSizePx + delta)),
-    );
-    changeFontSize({
-      slideId: ctx.slideId,
-      objId: ctx.objId,
-      newSize: `${next}px`,
-    });
+    if (rich.hasEditor) {
+      rich.bumpFontSize(delta);
+      return;
+    }
   };
 
   return (

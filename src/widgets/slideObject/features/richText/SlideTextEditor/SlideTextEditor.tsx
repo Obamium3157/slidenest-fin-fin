@@ -10,6 +10,7 @@ import { getStyleFromFont } from "../../../../../entities/slideText/lib/slideTex
 import richStyles from "./SlideRichText.module.css";
 import styles from "./SlideTextEditor.module.css";
 import { richTextController } from "../lib/richTextController.ts";
+import { FontSize } from "../lib/fontSizeExtension.ts";
 
 type Props = {
   slideId: string;
@@ -33,10 +34,13 @@ export function SlideTextEditor({
   const [html, setHtml] = useState(contentHtml);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, FontSize],
     content: contentHtml,
     onUpdate: ({ editor }) => {
       setHtml(editor.getHTML());
+      richTextController.notify();
+    },
+    onSelectionUpdate: () => {
       richTextController.notify();
     },
     editorProps: {

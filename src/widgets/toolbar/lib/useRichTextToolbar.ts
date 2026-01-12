@@ -25,6 +25,8 @@ export function useRichTextToolbar() {
   const toggleBold = () => richTextController.toggleBold();
   const toggleItalic = () => richTextController.toggleItalic();
   const setDir = (dir: TextDir) => richTextController.setDir(dir);
+  const bumpFontSize = (delta: number) =>
+    richTextController.bumpFontSize(delta);
 
   return {
     hasEditor,
@@ -32,8 +34,10 @@ export function useRichTextToolbar() {
     bold: state.bold,
     italic: state.italic,
     dir: state.dir,
+    fontSizePx: state.fontSizePx,
     toggleBold,
     toggleItalic,
     setDir,
+    bumpFontSize,
   };
 }
