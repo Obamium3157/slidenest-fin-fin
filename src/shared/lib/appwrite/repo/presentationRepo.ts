@@ -21,6 +21,11 @@ export type PresentationMeta = {
   updatedAt: string;
 };
 
+export type StorageFileRef = {
+  bucketId: string;
+  fileId: string;
+};
+
 type PresentationRow = {
   $id: string;
   $createdAt: string;
@@ -71,6 +76,48 @@ function urlToString(u: unknown): string {
   if (u && typeof u === "object" && "href" in u)
     return String((u as { href: unknown }).href);
   return String(u);
+}
+
+export function parseStorageFileRefFromUrl(src: string): StorageFileRef | null {
+  if (src.length === 0) return null;
+
+  let url: URL;
+  try {
+    url = new URL(src);
+  } catch {
+    return null;
+  }
+
+  const parts = url.pathname.split("/").filter(Boolean);
+  const bucketsIdx = parts.findIndex((p) => p === "buckets");
+  if (bucketsIdx === -1) return null;
+
+  const bucketId = parts[bucketsIdx + 1];
+  const filesIdx = parts.findIndex(
+    (p, idx) => p === "files" && idx > bucketsIdx,
+  );
+  if (!bucketId || filesIdx === -1) return null;
+
+  const fileId = parts[filesIdx + 1];
+  if (!fileId) return null;
+
+  if (bucketId !== APPWRITE_STORAGE_BUCKET_ID) return null;
+
+  return { bucketId, fileId };
+}
+
+export async function deleteImageFromStorageBySrc(src: string): Promise<void> {
+  const ref = parseStorageFileRefFromUrl(src);
+  if (!ref) return;
+
+  try {
+    await storage.deleteFile({
+      bucketId: ref.bucketId,
+      fileId: ref.fileId,
+    });
+  } catch {
+    /* ... */
+  }
 }
 
 function isDataUrl(src: string): boolean {
@@ -206,7 +253,7 @@ export async function savePresentationToAppwrite(
   try {
     await addMyPresentationId(prepared.id);
   } catch {
-    /* ... */
+    /* */
   }
 
   return { etag, rowId };

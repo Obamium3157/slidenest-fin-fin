@@ -19,7 +19,7 @@ export function useToolbarInitialization({
 }: Params) {
   const {
     addSlide,
-    removeSlide,
+    removeSlideWithStorageCleanup,
     addTextToSlide,
     addImageToSlide,
     updateSlideBackgroundColor,
@@ -35,8 +35,8 @@ export function useToolbarInitialization({
 
   const handleRemoveSlide = useCallback(() => {
     if (!currentSlideId) return;
-    removeSlide({ targetSlideId: currentSlideId });
-  }, [removeSlide, currentSlideId]);
+    removeSlideWithStorageCleanup({ targetSlideId: currentSlideId });
+  }, [removeSlideWithStorageCleanup, currentSlideId]);
 
   const handleAddText = useCallback(() => {
     if (!currentSlideId) return;
