@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import type { Editor as TiptapEditor } from "@tiptap/core";
+import { Extension } from "@tiptap/core";
 import type { TextDir } from "../../../../../entities/slideText/model/types.ts";
 import { useDebouncedTextCommit } from "../lib/useDebouncedTextCommit.ts";
 import { useAppDispatch } from "../../../../../entities/store/hooks.ts";
@@ -23,67 +23,6 @@ type Props = {
   onExit: () => void;
 };
 
-function parsePx(value: string | undefined | null, fallback: number): number {
-  if (!value) return fallback;
-  const m = value.trim().match(/^(-?\d+(?:\.\d+)?)px$/i);
-  if (!m) return fallback;
-  const n = Number(m[1]);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function ensureDefaultInlineFormatting(
-  editor: TiptapEditor,
-  baseFamily: string,
-  baseSizePx: number,
-) {
-  const { schema } = editor.state;
-  const sizeMarkType = schema.marks.fontSize;
-  const familyMarkType = schema.marks.fontFamily;
-  if (!sizeMarkType && !familyMarkType) return;
-
-  let tr = editor.state.tr;
-  let changed = false;
-
-  editor.state.doc.nodesBetween(
-    0,
-    editor.state.doc.content.size,
-    (node, pos) => {
-      if (!node.isText) return;
-
-      const from = pos;
-      const to = pos + node.nodeSize;
-
-      if (sizeMarkType) {
-        const hasSize = node.marks.some((m) => m.type === sizeMarkType);
-        if (!hasSize) {
-          tr = tr.addMark(
-            from,
-            to,
-            sizeMarkType.create({ size: `${baseSizePx}px` }),
-          );
-          changed = true;
-        }
-      }
-
-      if (familyMarkType) {
-        const hasFamily = node.marks.some((m) => m.type === familyMarkType);
-        if (!hasFamily) {
-          tr = tr.addMark(
-            from,
-            to,
-            familyMarkType.create({ family: baseFamily }),
-          );
-          changed = true;
-        }
-      }
-    },
-  );
-
-  if (changed) {
-    editor.view.dispatch(tr);
-  }
-}
-
 export function SlideTextEditor({
   slideId,
   objId,
@@ -94,11 +33,24 @@ export function SlideTextEditor({
 }: Props) {
   const dispatch = useAppDispatch();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const defaultsAppliedRef = useRef(false);
   const [html, setHtml] = useState(contentHtml);
 
+  const shortcutsExt = useMemo(
+    () =>
+      Extension.create({
+        name: "slideTextShortcuts",
+        addKeyboardShortcuts() {
+          return {
+            "Mod-b": () => this.editor.chain().focus().toggleBold().run(),
+            "Mod-i": () => this.editor.chain().focus().toggleItalic().run(),
+          };
+        },
+      }),
+    [],
+  );
+
   const editor = useEditor({
-    extensions: [StarterKit, FontSize, FontFamily],
+    extensions: [StarterKit, FontSize, FontFamily, shortcutsExt],
     content: contentHtml,
     onUpdate: ({ editor }) => {
       setHtml(editor.getHTML());
@@ -110,6 +62,14 @@ export function SlideTextEditor({
     editorProps: {
       attributes: {
         class: `${styles.proseMirror} ${richStyles.content}`,
+      },
+      handleKeyDown: (_view, event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          onExit();
+          return true;
+        }
+        return false;
       },
     },
   });
@@ -128,16 +88,6 @@ export function SlideTextEditor({
     editor.view.dom.setAttribute("dir", d);
     richTextController.notify();
   }, [editor, dir]);
-
-  useEffect(() => {
-    if (!editor) return;
-    if (defaultsAppliedRef.current) return;
-    defaultsAppliedRef.current = true;
-
-    const baseFamily = font.fontFamily ?? "SST";
-    const baseSizePx = parsePx(font.fontSize ?? null, 15);
-    ensureDefaultInlineFormatting(editor, baseFamily, baseSizePx);
-  }, [editor, font.fontFamily, font.fontSize]);
 
   useEffect(() => {
     if (!editor) return;
@@ -170,40 +120,13 @@ export function SlideTextEditor({
           t?.isContentEditable || t?.closest?.("[contenteditable='true']"),
         ) && Boolean(rootRef.current?.contains(t));
 
-      if (!isInThisEditor) {
-        if (e.key === "Escape") onExit();
-        return;
-      }
-
-      const mod = e.ctrlKey || e.metaKey;
-
-      if (mod && e.code === "KeyA") {
-        e.preventDefault();
-        editor?.commands.focus();
-        editor?.commands.selectAll();
-        return;
-      }
-
-      if (mod && e.code === "KeyB") {
-        e.preventDefault();
-        editor?.chain().focus().toggleBold().run();
-        richTextController.notify();
-        return;
-      }
-
-      if (mod && e.code === "KeyI") {
-        e.preventDefault();
-        editor?.chain().focus().toggleItalic().run();
-        richTextController.notify();
-        return;
-      }
-
+      if (isInThisEditor) return;
       if (e.key === "Escape") onExit();
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editor, onExit]);
+  }, [onExit]);
 
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {

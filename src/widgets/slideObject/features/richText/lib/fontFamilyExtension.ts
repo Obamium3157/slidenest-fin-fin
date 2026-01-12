@@ -24,8 +24,6 @@ export const FontFamily = Mark.create({
     return {
       family: {
         default: null,
-        parseHTML: (element) =>
-          normalizeFontFamily((element as HTMLElement).style.fontFamily),
         renderHTML: (attributes) => {
           const family = normalizeFontFamily(attributes.family);
           if (!family) return {};
@@ -38,7 +36,21 @@ export const FontFamily = Mark.create({
   parseHTML() {
     return [
       {
+        tag: "span[style]",
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          const family = normalizeFontFamily(el.style.fontFamily);
+          if (!family) return false;
+          return { family };
+        },
+      },
+      {
         style: "font-family",
+        getAttrs: (value) => {
+          const family = normalizeFontFamily(value);
+          if (!family) return false;
+          return { family };
+        },
       },
     ];
   },

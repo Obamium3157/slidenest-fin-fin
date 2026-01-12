@@ -31,8 +31,6 @@ export const FontSize = Mark.create({
     return {
       size: {
         default: null,
-        parseHTML: (element) =>
-          normalizeFontSize((element as HTMLElement).style.fontSize),
         renderHTML: (attributes) => {
           const size = normalizeFontSize(attributes.size);
           if (!size) return {};
@@ -45,7 +43,21 @@ export const FontSize = Mark.create({
   parseHTML() {
     return [
       {
+        tag: "span[style]",
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          const size = normalizeFontSize(el.style.fontSize);
+          if (!size) return false;
+          return { size };
+        },
+      },
+      {
         style: "font-size",
+        getAttrs: (value) => {
+          const size = normalizeFontSize(value);
+          if (!size) return false;
+          return { size };
+        },
       },
     ];
   },
