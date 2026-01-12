@@ -8,6 +8,7 @@ import {
 import type { Presentation } from "../../../../entities/presentation/model/types.ts";
 import type { SlideObj } from "../../../../entities/slide/model/types.ts";
 import { parseAndValidatePresentation } from "../../validation/presentationValidation.ts";
+import { getOrderedMapElementById } from "../../../types/orderedMap/OrderedMap.ts";
 
 export type SaveResult = {
   etag: string;
@@ -180,6 +181,26 @@ export async function addMyPresentationId(
   return next;
 }
 
+export async function removeMyPresentationId(
+  presentationId: string,
+): Promise<string[]> {
+  const prefs = await getPrefsObject();
+  const current = isStringArray(prefs[PREFS_PRESENTATION_IDS_KEY])
+    ? (prefs[PREFS_PRESENTATION_IDS_KEY] as string[])
+    : [];
+
+  const next = uniqStrings(current).filter((id) => id !== presentationId);
+
+  await account.updatePrefs({
+    prefs: {
+      ...prefs,
+      [PREFS_PRESENTATION_IDS_KEY]: next,
+    },
+  });
+
+  return next;
+}
+
 export async function uploadImageToStorage(file: File): Promise<string> {
   const created = await storage.createFile({
     bucketId: APPWRITE_STORAGE_BUCKET_ID,
@@ -336,4 +357,129 @@ export async function listMyPresentations(
   const metas = await listPresentationsByIdsInternal(ids);
 
   return metas.slice(0, safeLimit);
+}
+
+function collectPresentationImageSrcs(presentation: Presentation): string[] {
+  const result: string[] = [];
+
+  for (const slideId of presentation.slides.order) {
+    const slide = getOrderedMapElementById(presentation.slides, slideId);
+    if (!slide) continue;
+
+    for (const objId of slide.slideObjects.order) {
+      const obj = getOrderedMapElementById(slide.slideObjects, objId);
+      if (!obj || obj.type !== "image") continue;
+      if (obj.src) result.push(obj.src);
+    }
+  }
+
+  return result;
+}
+
+function getErrorCode(err: unknown): number | null {
+  if (!err || typeof err !== "object") return null;
+  if (!("code" in err)) return null;
+  const code = (err as { code?: unknown }).code;
+  return typeof code === "number" ? code : null;
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object" && "message" in err) {
+    const msg = (err as { message?: unknown }).message;
+    if (typeof msg === "string") return msg;
+  }
+  return String(err);
+}
+
+async function tryDeleteRowStrict(rowId: string): Promise<void> {
+  try {
+    await tablesDB.deleteRow({
+      databaseId: APPWRITE_DATABASE_ID,
+      tableId: APPWRITE_PRESENTATIONS_TABLE_ID,
+      rowId,
+    });
+  } catch (e) {
+    const code = getErrorCode(e);
+    if (code === 404) return;
+    throw e;
+  }
+}
+
+export async function deletePresentationAndAssets(
+  presentationId: string,
+): Promise<void> {
+  let presentation: Presentation | null;
+  try {
+    presentation = await loadPresentationByPresentationId(presentationId);
+  } catch {
+    presentation = null;
+  }
+
+  const srcs = presentation ? collectPresentationImageSrcs(presentation) : [];
+  const refs = uniqStrings(
+    srcs
+      .map((src) => parseStorageFileRefFromUrl(src))
+      .filter((x): x is StorageFileRef => !!x)
+      .map((x) => x.fileId),
+  );
+
+  await Promise.allSettled(
+    refs.map((fileId) =>
+      storage.deleteFile({
+        bucketId: APPWRITE_STORAGE_BUCKET_ID,
+        fileId,
+      }),
+    ),
+  );
+
+  const deleteErrors: unknown[] = [];
+
+  const primaryRowId = await stableRowIdFromPresentationId(presentationId);
+  try {
+    await tryDeleteRowStrict(primaryRowId);
+  } catch (e) {
+    deleteErrors.push(e);
+  }
+
+  try {
+    const rows = await tablesDB.listRows({
+      databaseId: APPWRITE_DATABASE_ID,
+      tableId: APPWRITE_PRESENTATIONS_TABLE_ID,
+      queries: [
+        Query.equal("presentationId", [presentationId]),
+        Query.limit(200),
+      ],
+    });
+
+    const rowIds = uniqStrings(
+      ((rows.rows ?? []) as unknown as Array<{ $id?: string }>).map(
+        (r) => r.$id ?? "",
+      ),
+    );
+
+    for (const rowId of rowIds) {
+      if (!rowId) continue;
+      try {
+        await tryDeleteRowStrict(rowId);
+      } catch (e) {
+        deleteErrors.push(e);
+      }
+    }
+  } catch (e) {
+    deleteErrors.push(e);
+  }
+
+  if (deleteErrors.length > 0) {
+    const msg = deleteErrors.map(getErrorMessage).join("\n");
+    throw new Error(
+      `Не удалось удалить строку(и) презентации из TablesDB:\n${msg}`,
+    );
+  }
+
+  try {
+    await removeMyPresentationId(presentationId);
+  } catch {
+    /* */
+  }
 }

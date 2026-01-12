@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
 } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth";
@@ -13,6 +14,7 @@ import {
   type PresentationMeta,
   loadPresentationByPresentationId,
   savePresentationToAppwrite,
+  deletePresentationAndAssets,
 } from "../../shared/lib/appwrite/repo/presentationRepo.ts";
 import { createDefaultPresentation } from "../../entities/presentation/model/createDefaultPresentation.ts";
 
@@ -27,6 +29,8 @@ import { ROUTES } from "../../app/router/routes.ts";
 
 import styles from "./UserPresentationsList.module.css";
 import { LogoutButton } from "../../widgets/logoutButton/ui/LogoutButton.tsx";
+
+import trash from "./assets/tabler/trash.svg";
 
 type LoadState = "idle" | "loading" | "error";
 
@@ -48,6 +52,7 @@ export function UserPresentationsList() {
   const [items, setItems] = useState<PresentationMeta[]>([]);
   const [state, setState] = useState<LoadState>("idle");
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
 
   const [firstSlides, setFirstSlides] = useState<Record<string, Slide | null>>(
@@ -143,6 +148,39 @@ export function UserPresentationsList() {
     }
   }, [canWork, load, navigate]);
 
+  const onDelete = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>, meta: PresentationMeta) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!canWork) return;
+
+      const title = meta.title || "Без названия";
+      const ok = window.confirm(`Удалить презентацию "${title}"?`);
+      if (!ok) return;
+
+      setDeletingId(meta.presentationId);
+      setErrorText(null);
+      try {
+        await deletePresentationAndAssets(meta.presentationId);
+        setItems((prev) =>
+          prev.filter((x) => x.presentationId !== meta.presentationId),
+        );
+        setFirstSlides((prev) => {
+          const next = { ...prev };
+          delete next[meta.presentationId];
+          return next;
+        });
+        previewsLoadedRef.current.delete(meta.presentationId);
+      } catch (err) {
+        setErrorText(err instanceof Error ? err.message : String(err));
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [canWork],
+  );
+
   if (authLoading) return <div>Загрузка...</div>;
 
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
@@ -223,8 +261,25 @@ export function UserPresentationsList() {
                       )}
                     </div>
 
-                    <div className={styles.title}>
-                      {p.title || "Без названия"}
+                    <div className={styles.titleRow}>
+                      <div className={styles.titleText}>
+                        {p.title || "Без названия"}
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={(e) => void onDelete(e, p)}
+                        disabled={deletingId === p.presentationId}
+                        aria-label="Удалить презентацию"
+                        title="Удалить"
+                      >
+                        <img
+                          className={styles.deleteIcon}
+                          src={trash}
+                          alt={"Удалить"}
+                        />
+                      </button>
                     </div>
                   </Link>
                 );
